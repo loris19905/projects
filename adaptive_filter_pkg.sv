@@ -1,0 +1,28 @@
+package adaptive_filter_pkg;
+	
+	localparam FIR_DIFF_ORDER = 9;
+	localparam FIR_DIFF_COEFF_NUM = (FIR_DIFF_ORDER + 1) >> 1;
+	localparam int DIFF_COEFF_WL [FIR_DIFF_COEFF_NUM-1:0] = {9, 10, 10, 7, 8};
+	localparam int DIFF_COEFF_FL [FIR_DIFF_COEFF_NUM-1:0] = {6, 7, 7, 4, 5};
+
+	localparam INTEGR_COEFF_NUM    = 2;
+	localparam int INTEGR_COEFF_WL = 1;
+	localparam int INTEGR_COEFF_FL [INTEGR_COEFF_NUM-1:0] = {6, 5}; 
+
+	typedef struct {
+		logic [DIFF_COEFF_WL[0]-DIFF_COEFF_FL[0]-1:-DIFF_COEFF_FL[0]] a0 = 8'hFF;
+		logic [DIFF_COEFF_WL[1]-DIFF_COEFF_FL[1]-1:-DIFF_COEFF_FL[1]] a1 = 8'h19;
+		logic [DIFF_COEFF_WL[2]-DIFF_COEFF_FL[2]-1:-DIFF_COEFF_FL[2]] a2 = 8'hCD;
+		logic [DIFF_COEFF_WL[3]-DIFF_COEFF_FL[3]-1:-DIFF_COEFF_FL[3]] a3 = 8'h07;
+		logic [DIFF_COEFF_WL[4]-DIFF_COEFF_FL[4]-1:-DIFF_COEFF_FL[4]] a4 = 8'h13;
+	} fir_diff_coeff;
+
+	typedef struct {
+		logic [INTEGR_COEFF_WL[0]-INTEGR_COEFF_FL[0]-1:-INTEGR_COEFF_FL[0]] a0 = 8'h17;
+		logic [INTEGR_COEFF_WL[1]-INTEGR_COEFF_FL[1]-1:-INTEGR_COEFF_FL[1]] a1 = 8'h29;
+	} fir_integr_coeff;
+	
+	localparam int MULTYPLYERS_WL [FIR_DIFF_COEFF_NUM-1:0] = {19, 20, 21, 15, 15};
+	localparam int MULTYPLYERS_FL [FIR_DIFF_COEFF_NUM-1:0] = {12, 11, 12, 6, 6  };
+
+endpackage : adaptive_filter_pkg
