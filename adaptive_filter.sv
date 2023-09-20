@@ -16,7 +16,7 @@ module adaptive_filter
     input  logic [13:0] s_tdata,
     output logic [13:0] m_tdata
 );
-    localparam DATA_WIDTH          = 13;
+    localparam DATA_WIDTH          = 14;
     localparam REG_ZERO_START_ADDR = 6;
     localparam DELAY_FEEDBACK_LOOP = 2;
     localparam SIGNED_BIT          = 1;
@@ -46,8 +46,8 @@ module adaptive_filter
         end  
     end
 
-    logic [FIR_DIFF_ORDER-1:0    ][OP_DIFF_WL-OP_DIFF_FL+SIGNED_BIT-1:OP_DIFF_FL] diff_res;
-    logic [FIR_DIFF_COEFF_NUM-1:0][OP_SUMM_WL-OP_SUMM_FL+SIGNED_BIT-1:OP_SUMM_FL] summ_res;
+    logic [FIR_DIFF_ORDER-1:0    ][OP_DIFF_WL-OP_DIFF_FL-1:OP_DIFF_FL] diff_res;
+    logic [FIR_DIFF_COEFF_NUM-1:0][OP_SUMM_WL-OP_SUMM_FL-1:OP_SUMM_FL] summ_res;
     
     logic [MULTYPLYERS_WL[0]-MULTYPLYERS_FL[0]-1:-MULTYPLYERS_FL[0]] mult_res_0;
     logic [MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]] mult_res_1;

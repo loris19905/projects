@@ -1,6 +1,7 @@
 %% Параметры
 
 DATA_PATH               = 'C:\MyFolder\RemoteFolder\projects\';
+INT16_SIZE              = 16;
 DATA_WIDTH              = 14;
 INPUT_DATA_FILE_NAME    = 'data_in.txt';
 OUTPUT_DATA_FILE_NAME   = 'data_out.txt';
@@ -157,3 +158,18 @@ for i = 1:N
     fprintf(file_id, '%s\n', bin_repr);
 end
 fclose(file_id);
+
+%% Ожидание запуска симуляции
+disp("Запустите симуляцию")
+pause();
+
+%% Обработка данных симуляции
+file_id = fopen([DATA_PATH, OUTPUT_DATA_FILE_NAME], 'r');
+filter_output = fscanf(file_id, '%s');
+fclose(file_id);
+hex_symb_in_int16 = 4;
+filter_output_dec = zeros(1, length(filter_output)/hex_symb_in_int16);
+for i = 1:round(length(filter_output)/hex_symb_in_int16)
+    filter_output_dec(i) = hex2dec(filter_output((i-1)*hex_symb_in_int16+1:i*hex_symb_in_int16));
+end
+plot(filter_output_dec)

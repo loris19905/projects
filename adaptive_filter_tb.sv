@@ -29,6 +29,10 @@ module adaptive_filter_tb (
 
     always begin
         #2 clk = ~clk;
+        if (finish_data_transfer) begin
+            $writememh({DATA_DIR, OUTPUT_FILE_NAME}, m_tdata_mem);
+            $finish;
+        end
     end
 
     initial begin
@@ -37,10 +41,6 @@ module adaptive_filter_tb (
         #10;
         srst = 0;
         $readmemb({DATA_DIR, INPUT_FILE_NAME}, s_tdata_mem);
-        if (finish_data_transfer) begin
-            $writememb({DATA_DIR, OUTPUT_FILE_NAME}, m_tdata_mem);
-            $finish;
-        end
     end
 
     adaptive_filter dut (
