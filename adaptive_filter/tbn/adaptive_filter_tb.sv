@@ -30,7 +30,7 @@ module adaptive_filter_tb (
     always begin
         #2 clk = ~clk;
         if (finish_data_transfer) begin
-            $writememh({DATA_DIR, OUTPUT_FILE_NAME}, m_tdata_mem);
+            $writememb({DATA_DIR, OUTPUT_FILE_NAME}, m_tdata_mem);
             $finish;
         end
     end

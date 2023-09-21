@@ -1,7 +1,7 @@
 
 !*.sv
 !*.m
-*.xpr
+!*.xpr
 
 *.pb
 *.log
@@ -16,7 +16,6 @@
 *.wdb
 *.prj
 *.bat
-*.txt
 *.wpc
 *.wdf
 *.lpr
