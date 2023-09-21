@@ -19,10 +19,9 @@ module adaptive_filter
     localparam DATA_WIDTH          = 14;
     localparam REG_ZERO_START_ADDR = 6;
     localparam DELAY_FEEDBACK_LOOP = 2;
-    localparam SIGNED_BIT          = 1;
 
-    logic [FIR_DIFF_ORDER-1:0     ][DATA_WIDTH-1:0                               ] s_tdata_d;
-    logic [DELAY_FEEDBACK_LOOP-1:0][OP_SUMM_WL-OP_SUMM_FL+SIGNED_BIT-1:OP_SUMM_FL] loop_tdata;
+    logic [FIR_DIFF_ORDER-1:0     ][DATA_WIDTH-1:0                    ] s_tdata_d;
+    logic [DELAY_FEEDBACK_LOOP-1:0][OP_SUMM_WL-OP_SUMM_FL-1:OP_SUMM_FL] loop_tdata;
 
     always_ff @(posedge clk) begin
         if (srst) begin

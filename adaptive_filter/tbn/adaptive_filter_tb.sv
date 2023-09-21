@@ -9,12 +9,11 @@
 module adaptive_filter_tb (
 );
 
-    localparam DATA_WIDTH        = 14;
     localparam WORDLEGTH         = 14;
     localparam FRACTIONAL_LENGTH = 6;
 
     localparam DATA_IN_LENGTH   = 128;
-    localparam DATA_DIR         = "C:\\MyFolder\\RemoteFolder\\projects\\";
+    localparam DATA_DIR         = "C:\\MyFolder\\RemoteFolder\\projects\\adaptive_filter\\tbn\\data\\";
     localparam INPUT_FILE_NAME  = "data_in.txt";
     localparam OUTPUT_FILE_NAME = "data_out.txt";
 
