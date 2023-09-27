@@ -205,13 +205,13 @@ pause();
 file_id       = fopen([DATA_PATH, OUTPUT_DATA_FILE_NAME], 'r');
 filter_output = fscanf(file_id, '%s');
 fclose(file_id);
-hex_symb_in_int16 = 4;
-filter_output_dec = zeros(1, length(filter_output)/hex_symb_in_int16);
-for i = 1:round(length(filter_output)/hex_symb_in_int16)
+filter_output_dec = zeros(1, N);
+for i = 1:N
     a = fi(0,1,WORDLENGTH, FRACTIONAL_LENGTH);
-    a.hex = filter_output((i-1)*hex_symb_in_int16+1:i*hex_symb_in_int16);
+    a.bin = filter_output((i-1)*WORDLENGTH+1:i*WORDLENGTH);
     filter_output_dec(i) = double(a);
 end
 plot(filter_output_dec)
 hold on 
 plot(model_dec)
+hold off
