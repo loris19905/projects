@@ -141,10 +141,11 @@ for j = 1:(order(end)+1)/2
         ax.FontName = "Times New Roman";
         ax.FontSize = 10;
         grid on
-        pos_res                  = find(max_error < limit);
-        resolution_diff(j)       = pos_res(1);
-        resolution_diff(end-j+1) = pos_res(1);
     end
+
+    pos_res                  = find(max_error < limit);
+    resolution_diff(j)       = pos_res(1);
+    resolution_diff(end-j+1) = pos_res(1);
 
 end
 %% Покажем распределение ошибки вдоль полосы для дифференциатора

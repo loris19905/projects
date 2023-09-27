@@ -7,7 +7,7 @@ close all;
 %% Параметры
 
 FILTER_MODE    = 'differentiator'; % 'integrator', 'differentiator'
-GET_INPUT_DATA = 'read';       % 'generate', 'read'
+GET_INPUT_DATA = 'read';           % 'generate', 'read'
 
 %% Начальные данные
 INT16_SIZE              = 16;
