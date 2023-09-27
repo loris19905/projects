@@ -53,7 +53,7 @@ module adaptive_filter
 
             if (s_tvalid) begin
                 loop_tdata[0] <= summ_res[FIR_DIFF_COEFF_NUM-1];
-                m_tdata       <= summ_res[4][7:-6]; 
+                m_tdata       <= (summ_res[4][-7]) ? summ_res[4][7:-6] + 1 : summ_res[4][7:-6]; //округление
             end else begin
                 loop_tdata[0] <= loop_tdata[0];
                 m_tdata       <= m_tdata;
@@ -79,12 +79,19 @@ module adaptive_filter
     logic [MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]] mult_res_3;
     logic [MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]] mult_res_4;
 
-    /*
-    logic op1_is_neg;
-    logic op2_is_neg;
-    logic is_op1_more_than_op2; //по модулю
-    logic [DATA_WIDTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] diff_res_tmp;
-    */
+    logic [MULTYPLYERS_FL[0]-MULTYPLYERS_FL[1]-1:0] zeros_summ_res_0;
+    logic [OP_SUMM_FL-MULTYPLYERS_FL[3]-1:0]        zeros_summ_res_2;
+    logic [OP_SUMM_FL-MULTYPLYERS_FL[4]-1:0]        zeros_summ_res_3;
+
+    assign zeros_summ_res_0 = '0;
+    assign zeros_summ_res_2 = '0;
+    assign zeros_summ_res_3 = '0;
+
+    logic [OP_DIFF_FL-DIFF_COEFF_FL[0]-1:0] zeros_diff_mult_res_0;
+    logic [OP_DIFF_FL-DIFF_COEFF_FL[1]-1:0] zeros_diff_mult_res_1;
+    logic [OP_DIFF_FL-DIFF_COEFF_FL[2]-1:0] zeros_diff_mult_res_2;
+    logic [OP_DIFF_FL-DIFF_COEFF_FL[3]-1:0] zeros_diff_mult_res_3;
+    logic [OP_DIFF_FL-DIFF_COEFF_FL[4]-1:0] zeros_diff_mult_res_4;
 
     always_comb begin
         if (srst) begin
@@ -97,54 +104,21 @@ module adaptive_filter
         end else begin
             for (int i = 0; i < FIR_DIFF_COEFF_NUM; i++) begin
                 if (i == 0) begin
-
-                    /*
-                    op1_is_neg           = s_tdata[DATA_WIDTH-FRACTIONAL_LENGTH-1];
-                    op2_is_neg           = s_tdata_d[FIR_DIFF_ORDER-1][DATA_WIDTH-FRACTIONAL_LENGTH-1];
-                    is_op1_more_than_op2 = s_tdata[DATA_WIDTH-FRACTIONAL_LENGTH-2:-FRACTIONAL_LENGTH] >= s_tdata_d[FIR_DIFF_ORDER-1][DATA_WIDTH-FRACTIONAL_LENGTH-2:-FRACTIONAL_LENGTH];
-                    diff_res_tmp         = s_tdata - s_tdata_d[FIR_DIFF_ORDER-1];
-                    */
                     diff_res[i] = $signed(s_tdata) - $signed(s_tdata_d[FIR_DIFF_ORDER-1]);
-                    /*
-                    if (op1_is_neg && op2_is_neg) begin
-                        diff_res[i] = (is_op1_more_than_op2) ? {1'b1, diff_res_tmp} : {1'b0, diff_res_tmp};
-                    end else if (~op1_is_neg && op2s_is_neg) begin
-                        diff_res[i] = {1'b0, diff_res_tmp};
-                    end else if (op1_is_neg && ~op2_is_neg) begin
-                        diff_res[i] = {1'b1, diff_res_tmp};
-                    end else begin
-                        diff_res[i] = (is_op1_more_than_op2) ? {1'b0, diff_res_tmp} : {1'b1, diff_res_tmp};
-                    end
-                    */
                 end else begin
                     diff_res[i] = $signed(s_tdata_d[i-1]) - $signed(s_tdata_d[FIR_DIFF_ORDER-i-1]);
-                    /*
-                    op1_is_neg           = s_tdata_d[i-1][DATA_WIDTH-FRACTIONAL_LENGTH-1];
-                    op2_is_neg           = s_tdata_d[FIR_DIFF_ORDER-1][DATA_WIDTH-FRACTIONAL_LENGTH-1];
-                    is_op1_more_than_op2 = s_tdata_d[i-1][DATA_WIDTH-FRACTIONAL_LENGTH-2:-FRACTIONAL_LENGTH] >= s_tdata_d[FIR_DIFF_ORDER-i-1][DATA_WIDTH-FRACTIONAL_LENGTH-2:-FRACTIONAL_LENGTH];
-                    diff_res_tmp         = s_tdata_d[i-1] - s_tdata_d[FIR_DIFF_ORDER-1];
-
-                    if (op1_is_neg && op2_is_neg) begin
-                        diff_res[i] = (is_op1_more_than_op2) ? {1'b1, diff_res_tmp} : {1'b0, diff_res_tmp};
-                    end else if (~op1_is_neg && op2_is_neg) begin
-                        diff_res[i] = {1'b0, diff_res_tmp};
-                    end else if (op1_is_neg && ~op2_is_neg) begin
-                        diff_res[i] = {1'b1, diff_res_tmp};
-                    end else begin
-                        diff_res[i] = (is_op1_more_than_op2) ? {1'b0, diff_res_tmp} : {1'b1, diff_res_tmp};
-                    end
-                    */
                 end
             end
             
             if (ctrl) begin
 
-                mult_res_0  = $signed({1'b0, fir_integr_coeff_a0}) * $signed(diff_res[0]);
-                mult_res_1  = $signed({1'b0, fir_integr_coeff_a1}) * $signed(diff_res[1]);
+                mult_res_0  = $signed({1'b0, fir_integr_coeff_a0}) * $signed(diff_res[0]);            //вставка доп нуля слева, чтобы трактовать как положительное знаковое число
+                mult_res_1  = $signed({1'b0, fir_integr_coeff_a1}) * $signed(diff_res[1]); 
                 mult_res_2  = $signed({1'b0, fir_integr_coeff_a0}) * $signed(diff_res[2]);
                 mult_res_3  = '0;
                 mult_res_4  = '0;
-                summ_res[0] = $signed(mult_res_0 ) + $signed(mult_res_1);
+
+                summ_res[0] = $signed(mult_res_0 ) + $signed({mult_res_1, zeros_summ_res_0});       //добавление нулей для приведения положения запятой числа
                 summ_res[1] = $signed(summ_res[0]) + $signed(mult_res_2);
                 summ_res[2] = $signed(summ_res[1]) + $signed(mult_res_3);
                 summ_res[3] = $signed(summ_res[2]) + $signed(mult_res_4);
@@ -152,15 +126,16 @@ module adaptive_filter
             
             end else begin
 
-                mult_res_0  = fir_diff_coeff_a0 * diff_res[0];
-                mult_res_1  = fir_diff_coeff_a1 * diff_res[1];
-                mult_res_2  = fir_diff_coeff_a2 * diff_res[2];
-                mult_res_3  = fir_diff_coeff_a3 * diff_res[3];
-                mult_res_4  = fir_diff_coeff_a4 * diff_res[4];
+                mult_res_0  = $signed(fir_diff_coeff_a0) * $signed(diff_res[0]);
+                mult_res_1  = $signed(fir_diff_coeff_a1) * $signed(diff_res[1]);
+                mult_res_2  = $signed(fir_diff_coeff_a2) * $signed(diff_res[2]);
+                mult_res_3  = $signed(fir_diff_coeff_a3) * $signed(diff_res[3]);
+                mult_res_4  = $signed(fir_diff_coeff_a4) * $signed(diff_res[4]);
+
                 summ_res[0] = $signed(mult_res_0 ) + $signed(mult_res_1);
                 summ_res[1] = $signed(summ_res[0]) + $signed(mult_res_2);
-                summ_res[2] = $signed(summ_res[1]) + $signed(mult_res_3);
-                summ_res[3] = $signed(summ_res[2]) + $signed(mult_res_4);
+                summ_res[2] = $signed(summ_res[1]) + $signed({mult_res_3, zeros_summ_res_2});
+                summ_res[3] = $signed(summ_res[2]) + $signed({mult_res_4, zeros_summ_res_3});
                 summ_res[4] = summ_res[3];
             
             end   

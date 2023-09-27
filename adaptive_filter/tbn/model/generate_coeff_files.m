@@ -6,7 +6,7 @@ clc;
 close all;
 %% Параметры
 
-FILTER_MODE    = 'integrator'; % 'integrator', 'differentiator'
+FILTER_MODE    = 'differentiator'; % 'integrator', 'differentiator'
 GET_INPUT_DATA = 'read';       % 'generate', 'read'
 
 %% Начальные данные
@@ -177,11 +177,11 @@ if strcmp(GET_INPUT_DATA, 'generate')
     fclose(file_id);
 elseif strcmp(GET_INPUT_DATA, 'read')
 
-    file_id     = fopen([DATA_PATH, INPUT_DATA_FILE_NAME]);
+    file_id     = fopen([DATA_PATH, INPUT_DATA_FILE_NAME], 'r');
     signal_char = fscanf(file_id, '%s\n');
     fclose(file_id);
 
-    file_id    = fopen([DATA_PATH, MODEL_DATA_FILE_NAME]);
+    file_id    = fopen([DATA_PATH, MODEL_DATA_FILE_NAME], 'rb');
     model_dec  = fread(file_id, N, 'double');
     fclose(file_id);
  

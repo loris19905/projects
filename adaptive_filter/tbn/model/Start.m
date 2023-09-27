@@ -1,7 +1,7 @@
 %% Параметры управления скриптом
 
 MAKE_PLOT         = 0;
-FILTER_MODE       = 'integrator'; % 'integrator', 'differentiator', 'both'
+FILTER_MODE       = 'differentiator'; % 'integrator', 'differentiator', 'both'
 SINGLE_TONE_TEST  = 1;                      % Если 1, то подается 1 амлитуда в модель; если 0, то моделируется весь диапазон значений
 
 %% Начальные данные
@@ -74,7 +74,7 @@ if strcmp(FILTER_MODE, 'integrator') || strcmp(FILTER_MODE, 'both')
         max_error_integr(end+1) = max(max(error_data));
     end
 
-    file_id = fopen([DATA_FILE_PATH, MODEL_DATA_FILE_NAME, '_integrator'], 'wb');
+    file_id = fopen([DATA_FILE_PATH, MODEL_DATA_FILE_NAME, '_', FILTER_MODE], 'wb');
     fwrite(file_id, ans.fp_out_signal.data, 'double');
     fclose(file_id);
     
@@ -132,20 +132,20 @@ if strcmp(FILTER_MODE, 'differentiator') || strcmp(FILTER_MODE, 'both')
     ctrl = [t', ctrl];
     max_error_diff = [];
     for i = 1:length(INPUT_FREQ_VECTOR)
-        test_signal = sin(2*pi*f(i)*t')*(amp(:,i))';
+        test_signal = sin(2*pi*INPUT_FREQ_VECTOR(i)*t')*(amp(:,i))';
         test_signal = [t', test_signal];
         sim("models_diff_integr.slx");
         error_data = ans.error;
         max_error_diff(end+1) = max(max(error_data));    
     end
 
-    file_id = fopen([DATA_FILE_PATH, MODEL_DATA_FILE_NAME, '_differentiator'], 'wb');
-    fwrite(file_id, ans.fp_out_signal.data);
+    file_id = fopen([DATA_FILE_PATH, MODEL_DATA_FILE_NAME, '_', FILTER_MODE], 'wb');
+    fwrite(file_id, ans.fp_out_signal.data, 'double');
     fclose(file_id);
 
     if (SINGLE_TONE_TEST)
         file_id     = fopen([DATA_FILE_PATH, INPUT_DATA_FILE_NAME], 'w');
-        test_signal = round(test_signal * 2^FRACTIONAL_LENGTH);
+        test_signal = round(test_signal(:,2) * 2^FRACTIONAL_LENGTH);
         for i = 1:N
             bin_repr = dec2bin(test_signal(i));
             if length(bin_repr) < WORDLENGTH

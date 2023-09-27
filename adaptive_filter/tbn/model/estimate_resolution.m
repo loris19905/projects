@@ -1,3 +1,6 @@
+clear all;
+clc;
+close all;
 %% Параметры запуска
 MAKE_PLOT = 0;
 

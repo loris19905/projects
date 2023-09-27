@@ -45,14 +45,14 @@ module adaptive_filter_tb (
     end
 
     adaptive_filter dut (
-        .clk    (clk    ),
-        .srst   (srst   ),
-        .ctrl   (1'b1   ),
+        .clk      (clk     ),
+        .srst     (srst    ),
+        .ctrl     (1'b0    ),
 
-        .s_tdata (s_tdata),
-        .s_tvalid(s_tvalid),
+        .s_tdata  (s_tdata ),
+        .s_tvalid (s_tvalid),
 
-        .m_tdata  (m_tdata),
+        .m_tdata  (m_tdata ),
         .m_tvalid (m_tvalid)
     );
 
