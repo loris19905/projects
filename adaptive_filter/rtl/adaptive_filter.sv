@@ -3,7 +3,7 @@
   /*
   * Title        : Адаптивный фильтр (дифференциатор, интегратор)
   * File         : adaptive_filter.sv
-  * Description  : Реализация адаптивного фильтра: по ctrl = 1 фильтр работает в режиме интегратора, ctrl = 0 - в режиме дифференциатор.
+  * Description  : Реализация адаптивного фильтра: по ctrl = 1 фильтр работает в режиме интегратора, ctrl = 0 - в режиме дифференциатора.
   */
 
 module adaptive_filter 
@@ -53,13 +53,7 @@ module adaptive_filter
 
             if (s_tvalid) begin
                 loop_tdata[0] <= summ_res[FIR_DIFF_COEFF_NUM-1];
-
-                if (summ_res[4][OP_SUMM_WL-OP_SUMM_FL-1]) begin
-                    m_tdata <= (summ_res[4][-7]) ? summ_res[4][7:-6] - 1 : summ_res[4][7:-6];   //округление
-                end else begin
-                    m_tdata <= (summ_res[4][-7]) ? summ_res[4][7:-6] + 1 : summ_res[4][7:-6];
-                end
-
+                m_tdata <= (summ_res[4][-7]) ? summ_res[4][7:-6] + 1 : summ_res[4][7:-6];
             end else begin
                 loop_tdata[0] <= loop_tdata[0];
                 m_tdata       <= m_tdata;
@@ -150,36 +144,48 @@ module adaptive_filter
             
             end
 
-            mult_res_0      = $signed(fir_diff_coeff_a0) * $signed(diff_res[0]);
+            mult_res_0      = $signed(mult_coeff_0) * $signed(diff_res[0]);
 
-            mult_res_tmp_1  = $signed(fir_diff_coeff_a1) * $signed(diff_res[1]);
+            mult_res_tmp_1  = $signed(mult_coeff_1) * $signed(diff_res[1]);
+            mult_res_1      = mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]];
+            /*
             if (mult_res_tmp_1[OP_DIFF_WL+DIFF_COEFF_WL[1]-DIFF_COEFF_FL[1]-OP_DIFF_FL-1]) begin
                 mult_res_1 = (mult_res_tmp_1[-MULTYPLYERS_FL[1]-1]) ? mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]] - 1 : mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]];
             end else begin
                 mult_res_1 = (mult_res_tmp_1[-MULTYPLYERS_FL[1]-1]) ? mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]] + 1 : mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]]; 
             end     //надо еще дописать округление
+            */
 
-            mult_res_tmp_2  = $signed(fir_diff_coeff_a2) * $signed(diff_res[2]);
+            mult_res_tmp_2  = $signed(mult_coeff_2) * $signed(diff_res[2]);
+            mult_res_2      = mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]];
+            /*
             if (mult_res_tmp_2[OP_DIFF_WL+DIFF_COEFF_WL[2]-DIFF_COEFF_FL[2]-OP_DIFF_FL-1]) begin
                 mult_res_2 = (mult_res_tmp_2[-MULTYPLYERS_FL[2]-1]) ? mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]] - 1 : mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]];
             end else begin
                 mult_res_2 = (mult_res_tmp_2[-MULTYPLYERS_FL[2]-1]) ? mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]] + 1 : mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]]; 
             end
+            */
 
-
-            mult_res_tmp_3  = $signed(fir_diff_coeff_a3) * $signed(diff_res[3]);
+            mult_res_tmp_3  = $signed(mult_coeff_3) * $signed(diff_res[3]);
+            mult_res_3      = mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]];
+            
+            /*
             if (mult_res_tmp_3[OP_DIFF_WL+DIFF_COEFF_WL[3]-DIFF_COEFF_FL[3]-OP_DIFF_FL-1]) begin
                 mult_res_3 = (mult_res_tmp_3[-MULTYPLYERS_FL[3]-1]) ? mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]] - 1 : mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]];
             end else begin
                 mult_res_3 = (mult_res_tmp_3[-MULTYPLYERS_FL[3]-1]) ? mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]] + 1 : mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]]; 
             end
+            */
 
-            mult_res_tmp_4  = $signed(fir_diff_coeff_a4) * $signed(diff_res[4]);
+            mult_res_tmp_4  = $signed(mult_coeff_4) * $signed(diff_res[4]);
+            mult_res_4      = mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]];
+            /*
             if (mult_res_tmp_4[OP_DIFF_WL+DIFF_COEFF_WL[4]-DIFF_COEFF_FL[4]-OP_DIFF_FL-1]) begin
                 mult_res_4 = (mult_res_tmp_4[-MULTYPLYERS_FL[4]-1]) ? mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]] - 1 : mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]];
             end else begin
                 mult_res_4 = (mult_res_tmp_4[-MULTYPLYERS_FL[4]-1]) ? mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]] + 1 : mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]]; 
             end
+            */
 
             summ_res[0] = $signed(mult_res_0 ) + $signed({mult_res_1, zeros_summ_res_0});
             summ_res[1] = $signed(summ_res[0]) + $signed(mult_res_2);
