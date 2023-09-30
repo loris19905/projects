@@ -27,6 +27,8 @@ module adaptive_filter
     logic [DELAY_FEEDBACK_LOOP-1:0][OP_SUMM_WL-OP_SUMM_FL-1:-OP_SUMM_FL]              loop_tdata;
     logic s_tvalid_d;
 
+    logic [FIR_DIFF_COEFF_NUM-1:0][OP_SUMM_WL-OP_SUMM_FL-1:-OP_SUMM_FL] summ_res;
+
     always_ff @(posedge clk) begin
         if (srst) begin
             s_tdata_d  <= '0;
@@ -71,7 +73,6 @@ module adaptive_filter
     end
 
     logic [FIR_DIFF_COEFF_NUM-1:0][OP_DIFF_WL-OP_DIFF_FL-1:-OP_DIFF_FL] diff_res;
-    logic [FIR_DIFF_COEFF_NUM-1:0][OP_SUMM_WL-OP_SUMM_FL-1:-OP_SUMM_FL] summ_res;
 
     logic [MULTYPLYERS_WL[0]-MULTYPLYERS_FL[0]-1:-MULTYPLYERS_FL[0]] mult_res_0;
     logic [MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]] mult_res_1;

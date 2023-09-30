@@ -12,7 +12,7 @@ module adaptive_filter_tb (
     localparam WORDLEGTH         = 14;
     localparam FRACTIONAL_LENGTH = 6;
 
-    localparam DATA_IN_LENGTH   = 128;
+    localparam DATA_NUM   = 128;
     localparam DATA_DIR         = "C:\\MyFolder\\RemoteFolder\\projects\\adaptive_filter\\tbn\\data\\";
     localparam INPUT_FILE_NAME  = "data_in.txt";
     localparam OUTPUT_FILE_NAME = "data_out.txt";
@@ -22,26 +22,32 @@ module adaptive_filter_tb (
 
     logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] s_tdata;
     logic                                                    s_tvalid;
-    logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] s_tdata_mem [DATA_IN_LENGTH-1:0];
+    logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] s_tdata_mem [DATA_NUM-1:0];
 
     logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] m_tdata;
-    logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] m_tdata_mem [DATA_IN_LENGTH-1:0];
+    logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] m_tdata_mem [DATA_NUM-1:0];
     logic                                                    m_tvalid;
+
+    logic finish_data_transfer;
 
     always begin
         #2 clk = ~clk;
+
         if (finish_data_transfer) begin
             $writememb({DATA_DIR, OUTPUT_FILE_NAME}, m_tdata_mem);
             $finish;
         end
+
     end
 
     initial begin
-        clk = 1;
+
+        clk  = 1;
         srst = 1;
         #10;
         srst = 0;
         $readmemb({DATA_DIR, INPUT_FILE_NAME}, s_tdata_mem);
+
     end
 
     adaptive_filter dut (
@@ -56,28 +62,33 @@ module adaptive_filter_tb (
         .m_tvalid (m_tvalid)
     );
 
-    logic [$clog2(DATA_IN_LENGTH)-1:0] cnt_output_data;
-    logic [$clog2(DATA_IN_LENGTH)-1:0] cnt_input_data;
+    logic [$clog2(DATA_NUM)-1:0] cnt_output_data;
+    logic [$clog2(DATA_NUM)-1:0] cnt_input_data;
 
-    logic finish_data_transfer;
     always_ff @(posedge clk) begin
         if (srst) begin
-            s_tdata              <= '0;
+
             foreach (m_tdata_mem[element]) begin
                 m_tdata_mem[element] <= '0;
             end
+
+            s_tdata              <= '0;
             cnt_output_data      <= '0;
             cnt_input_data       <= '0;
             finish_data_transfer <= '0;
             s_tvalid             <= 1'b0;
+
         end else begin
+
             s_tvalid                     <= 1'b1;
             s_tdata                      <= s_tdata_mem[cnt_input_data];
             cnt_input_data               <= cnt_input_data + 1;
             m_tdata_mem[cnt_output_data] <= m_tdata;
             cnt_output_data              <= (m_tvalid) ? cnt_output_data + 1 : cnt_output_data;
-            finish_data_transfer         <= (cnt_output_data == (DATA_IN_LENGTH-1)) ? 1'b1 : finish_data_transfer;
+            finish_data_transfer         <= (cnt_output_data == (DATA_NUM - 1)) ? 1'b1 : finish_data_transfer;
+        
         end
+
     end
 
 endmodule : adaptive_filter_tb
