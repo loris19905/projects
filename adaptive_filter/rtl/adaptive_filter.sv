@@ -178,11 +178,14 @@ module adaptive_filter
 
     logic [$clog2(DATA_LENGTH)-1:0]                                  cnt_data;
     logic                                                            finish_data_transfer;
+
     logic [MULTYPLYERS_WL[0]-MULTYPLYERS_FL[0]-1:-MULTYPLYERS_FL[0]] mult_res_0_mem [DATA_LENGTH-1:0];
     logic [MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]] mult_res_1_mem [DATA_LENGTH-1:0];
     logic [MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]] mult_res_2_mem [DATA_LENGTH-1:0];
     logic [MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]] mult_res_3_mem [DATA_LENGTH-1:0];
     logic [MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]] mult_res_4_mem [DATA_LENGTH-1:0];
+
+    logic [OP_DIFF_WL-OP_DIFF_FL-1:-OP_DIFF_FL] diff_res_mem [DATA_LENGTH-1:0][FIR_DIFF_COEFF_NUM-1:0];
 
     always_ff @(posedge clk) begin
         if (srst) begin
@@ -208,6 +211,12 @@ module adaptive_filter
                 mult_res_4_mem[element] <= '0;
             end
 
+            for (int i = 0; i < DATA_LENGTH; i++) begin
+                for (int j = 0; j < FIR_DIFF_COEFF_NUM; j++) begin
+                    diff_res_mem[i][j] <= '0;    
+                end
+            end
+
         end else begin
             if (s_tvalid) begin
                 cnt_data                 <= cnt_data + 1;
@@ -216,15 +225,21 @@ module adaptive_filter
                 mult_res_2_mem[cnt_data] <= mult_res_2;
                 mult_res_3_mem[cnt_data] <= mult_res_3;
                 mult_res_4_mem[cnt_data] <= mult_res_4;
+
+                for (int i = 0; i < FIR_DIFF_COEFF_NUM; i++) begin
+                    diff_res_mem[cnt_data][i] <= diff_res[i];
+                end
+
                 finish_data_transfer     <= (cnt_data == (DATA_LENGTH - 1)) ? 1'b1 : 1'b0;
             end else begin
-                cnt_data             <= cnt_data;
-                mult_res_0_mem       <= mult_res_0_mem;
-                mult_res_1_mem       <= mult_res_1_mem;
-                mult_res_2_mem       <= mult_res_2_mem;
-                mult_res_3_mem       <= mult_res_3_mem;
-                mult_res_4_mem       <= mult_res_4_mem;
-                finish_data_transfer <= finish_data_transfer;
+                cnt_data              <= cnt_data;
+                mult_res_0_mem        <= mult_res_0_mem;
+                mult_res_1_mem        <= mult_res_1_mem;
+                mult_res_2_mem        <= mult_res_2_mem;
+                mult_res_3_mem        <= mult_res_3_mem;
+                mult_res_4_mem        <= mult_res_4_mem;
+                diff_res_mem          <= diff_res_mem;
+                finish_data_transfer  <= finish_data_transfer;
             end
         end
     end
@@ -236,6 +251,20 @@ module adaptive_filter
             $writememb({DATA_DIR, "mult_2.txt"}, mult_res_2_mem);
             $writememb({DATA_DIR, "mult_3.txt"}, mult_res_3_mem);
             $writememb({DATA_DIR, "mult_4.txt"}, mult_res_4_mem);
+
+            $writememb({DATA_DIR, "diff.txt"}, diff_res_mem);
+            /*
+            for (int i = 0; i < FIR_DIFF_COEFF_NUM; i++) begin
+                string filename;
+                filename = {"diff_", $sformatf("%d.txt", i)};
+                fd       = $fopen({DATA_DIR, filename},"wb");
+                for (int j = 0; j < DATA_LENGTH; j++) begin
+                    $fwrite(fd, diff_res_mem[j][i]);
+                end
+                $fclose(fd);
+            end
+            */
+
         end
     end
 

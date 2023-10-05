@@ -7,7 +7,7 @@ close all;
 
 
 FILTER_MODE    = 'differentiator'; % 'integrator', 'differentiator'
-GET_INPUT_DATA = 'generate';           % 'generate', 'read'
+GET_INPUT_DATA = 'generate';       % 'generate', 'read'
 DEBUG          = 1;
 
 %% Начальные данные
@@ -21,6 +21,7 @@ MODEL_DATA_FILE_NAME  = ['model_data', '_', FILTER_MODE];
 
 FILTER_ORDER = 9;
 MULT_NUM     = (FILTER_ORDER + 1) / 2;
+DIFF_NUM     = MULT_NUM;
 
 N    = 128;
 FS   = 1;
@@ -30,6 +31,9 @@ Time = N/FS;
 
 WORDLENGTH        = 14;
 FRACTIONAL_LENGTH = 6;
+
+OP_DIFF_WL = 15;
+OP_DIFF_FL = 6;
 
 WORDLENGTH_MULT = [18, 19, 20, 14, 14];
 FRACLENGTH_MULT = [12, 11, 12, 6, 6];
@@ -112,20 +116,40 @@ filter_output = read_data_from_sim([DATA_PATH, OUTPUT_DATA_FILE_NAME], N, ...
 
 mult_rtl   = zeros(N, MULT_NUM);
 mult_model = zeros(N, MULT_NUM);
+
+diff_rtl   = zeros(1, MULT_NUM*N);
+diff_model = zeros(N, MULT_NUM);
+
 for i = 1:(FILTER_ORDER+1)/2
     mult_rtl(:, i) = read_data_from_sim([DATA_PATH, 'mult_', num2str(i-1), '.txt'], ...
-                                        N, WORDLENGTH_MULT(i), FRACLENGTH_MULT(i)); 
+                                        N, WORDLENGTH_MULT(i), FRACLENGTH_MULT(i));
     
     file_id         = fopen([DATA_PATH, 'mult_', num2str(i-1)], 'rb');
     mult_model(:,i) = fread(file_id, N, 'double');
     fclose(file_id);
 
+    file_id         = fopen([DATA_PATH, 'diff_', num2str(i-1)], 'rb');
+    diff_model(:,i) = fread(file_id, N, 'double');
+    fclose(file_id);
+
 end
+
+diff_rtl = read_data_from_sim([DATA_PATH, 'diff', '.txt'], ...
+                              N*MULT_NUM, OP_DIFF_WL, OP_DIFF_FL);
+
+diff_rtl = reshape(diff_rtl, DIFF_NUM, N);
+diff_rtl = diff_rtl';
 
 plot(filter_output)
 hold on 
 plot(model_dec)
 hold off
+
+if (isequal(diff_model, diff_rtl))
+    disp("Данные с выхода блоков вычитания совпали")
+else
+    disp("ОШИБКА!! Данные с выхода блоков вычитания не совпали")
+end
 
 if (isequal(mult_model, mult_rtl))
     disp("Данные с выхода умножителей совпали")
@@ -156,6 +180,12 @@ function output_data = start_simulink(signal, t, debug, file_path)
     mult_2_data = ans.mult_2.data;
     mult_3_data = ans.mult_3.data;
     mult_4_data = ans.mult_4.data;
+
+    diff_0_data = ans.diff_0.data;
+    diff_1_data = ans.diff_1.data;
+    diff_2_data = ans.diff_2.data;
+    diff_3_data = ans.diff_3.data;
+    diff_4_data = ans.diff_4.data;
     
     if (debug)
 
@@ -177,6 +207,26 @@ function output_data = start_simulink(signal, t, debug, file_path)
 
         file_id = fopen([file_path, 'mult_4'], 'wb');
         fwrite(file_id, mult_4_data, 'double');
+        fclose(file_id);
+
+        file_id = fopen([file_path, 'diff_0'], 'wb');
+        fwrite(file_id, diff_0_data, 'double');
+        fclose(file_id);
+
+        file_id = fopen([file_path, 'diff_1'], 'wb');
+        fwrite(file_id, diff_1_data, 'double');
+        fclose(file_id);
+
+        file_id = fopen([file_path, 'diff_2'], 'wb');
+        fwrite(file_id, diff_2_data, 'double');
+        fclose(file_id);
+
+        file_id = fopen([file_path, 'diff_3'], 'wb');
+        fwrite(file_id, diff_3_data, 'double');
+        fclose(file_id);
+
+        file_id = fopen([file_path, 'diff_4'], 'wb');
+        fwrite(file_id, diff_4_data, 'double');
         fclose(file_id);
 
     end
