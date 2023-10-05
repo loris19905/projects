@@ -1,163 +1,55 @@
 %%
 estimate_resolution;
-Start;
-clear all;
+clearvars -except coeff_integrator coeff;
 clc;
 close all;
 %% Параметры
 
+
 FILTER_MODE    = 'differentiator'; % 'integrator', 'differentiator'
-GET_INPUT_DATA = 'read';           % 'generate', 'read'
+GET_INPUT_DATA = 'generate';           % 'generate', 'read'
+DEBUG          = 1;
 
 %% Начальные данные
 INT16_SIZE              = 16;
 DATA_WIDTH              = 14;
 
-DATA_PATH               = '..\data\';
-INPUT_DATA_FILE_NAME    = 'data_in.txt';
-OUTPUT_DATA_FILE_NAME   = 'data_out.txt';
-MODEL_DATA_FILE_NAME    = ['model_data', '_', FILTER_MODE];
+DATA_PATH             = '..\data\';
+INPUT_DATA_FILE_NAME  = 'data_in.txt';
+OUTPUT_DATA_FILE_NAME = 'data_out.txt';
+MODEL_DATA_FILE_NAME  = ['model_data', '_', FILTER_MODE];
 
-N   = 128;
-FS  = 20*10^6;
-AMP = 10;
+FILTER_ORDER = 9;
+MULT_NUM     = (FILTER_ORDER + 1) / 2;
+
+N    = 128;
+FS   = 1;
+AMP  = 10;
+Time = N/FS;
+
 
 WORDLENGTH        = 14;
 FRACTIONAL_LENGTH = 6;
 
-DIFF_COEFF_FILE_NAME   = 'diff_coeff';
-INTEGR_COEFF_FILE_NAME = 'integr_coeff';
+WORDLENGTH_MULT = [18, 19, 20, 14, 14];
+FRACLENGTH_MULT = [12, 11, 12, 6, 6];
 
 DATA_TYPE = 'int16';
 
-%% Запись коэффцицента КИХ-фильтра (дифференциатора)
-
-% Есть идея собрать в текстовом виде все коэффициенты фильтра в 1 строку
-% В самом rtl, зная длину слова каждого коэффициента, можно будет путем
-% не хитрой адресации написать нормальный код.
-
-diff_coeff = [-0.016686934099368,
-              0.195507800433580,
-              -0.394962749734687,
-              0.433866959174206,
-              0.597244731023441];
-
-wordlength_diff        = [8, 9, 9, 6, 7];
-fractional_length_diff = [6, 7, 7, 4, 5];
-
-coeff_diff_int = zeros(1, length(diff_coeff));
-cumm_coeff_num = ceil((sum(wordlength_diff) + length(wordlength_diff))/64);
-cumm_coeff     = zeros(1, cumm_coeff_num);
-
-cumm_coeff_idx = '';
-
-% a = '';
-% for i = 1:length(coeff_diff_int)
-%     fp_tmp            = fi(diff_coeff(i), 1, wordlength_diff(i), ...
-%                            fractional_length_diff(i));
-%     dec2hex(fp_tmp.int);
-%     a = [fp_tmp.bin ,a];
-%     if (diff_coeff(i) < 0)
-%         fp_fill_zero     = fi(0, 0, wordlength_diff(i)+1); %нельзя произвести битовый сдвиг, если число отрицательное 
-%         fp_fill_zero.bin = ['0', fp_tmp.bin];
-%         fp_tmp           = fp_fill_zero;
-%     end
-% 
-%     coeff_diff_int(i) = fp_tmp.int;
-%     if (i == 1)
-%         cumm_coeff(cumm_coeff_idx) = coeff_diff_int(1);
-%         shift      = wordlength_diff(i) + 1;
-%     else
-%         cumm_coeff(cumm_coeff_idx) = cumm_coeff(cumm_coeff_idx) + bitshift(coeff_diff_int(i), shift);
-%         shift = shift + wordlength_diff(i) + 1;
-%         if (shift >= 64)
-%             shift = 0;
-%             cumm_coeff_idx = cumm_coeff_idx + 1;
-%         end
-%     end
-% end
-% b = bin2dec(a);
-% b = dec2hex(b);
-%% Запись данных о коэффициентах КИХ-фильтра (дифференциатора)
-
-% diff_coeff_file_path = [DATA_PATH, DIFF_COEFF_FILE_NAME, '.bin'];
-% file_id = fopen(diff_coeff_file_path, 'wb');
-% fwrite(file_id, coeff_diff_int, DATA_TYPE, 'native');
-% fclose(file_id);
-% 
-% diff_coeff_wd_file_path = [DATA_PATH, DIFF_COEFF_WL_FILE_NAME, '.bin'];
-% file_id = fopen(diff_coeff_wd_file_path, 'wb');
-% fwrite(file_id, wordlength_diff, DATA_TYPE, 'ieee-be');
-% fclose(file_id);
-% 
-% diff_coeff_fl_file_path = [DATA_PATH, DIFF_COEFF_FL_FILE_NAME, '.bin'];
-% file_id = fopen(diff_coeff_fl_file_path, 'wb');
-% fwrite(file_id, fractional_length_diff, DATA_TYPE, 'ieee-be');
-% fclose(file_id);
-
-%% Перевод коэффициентов КИХ-фильтра (дифференциатора) в int
-tick_coeff = [0.3584,
-              1.2832,
-              0.3584
-              ];
-
-wordlength_integr        = [7, 6, 7];
-fractional_length_integr = [6, 5, 6];
-
-coeff_integr_int = zeros(1, length(tick_coeff));
-
-cumm_coeff_num = ceil((sum(wordlength_integr))/64);
-cumm_coeff     = zeros(1, cumm_coeff_num);
-
-cumm_coeff_idx = 1;
-% for i = 1:length(tick_coeff)
-%     fp_tmp            = fi(tick_coeff(i), 0, wordlength_integr(i), ...
-%                            fractional_length_integr(i));
-% 
-%     dec2hex(fp_tmp.int)
-%     coeff_integr_int(i) = fp_tmp.int;
-%     if (i == 1)
-%         cumm_coeff(cumm_coeff_idx) = coeff_integr_int(1);
-%         shift      = wordlength_integr(i) + 1;
-%     else
-%         cumm_coeff(cumm_coeff_idx) = cumm_coeff(cumm_coeff_idx) + bitshift(coeff_integr_int(i), shift);
-%         shift = shift + wordlength_integr(i) + 1;
-%         if (shift >= 64)
-%             shift = 0;
-%             cumm_coeff_idx = cumm_coeff_idx + 1;
-%         end
-%     end
-% end
-
-%% Запись данных о коэффициентах КИХ части интегратора
-
-% integr_coeff_file_path = [DATA_PATH, INTEGR_COEFF_FILE_NAME, '.bin'];
-% file_id = fopen(integr_coeff_file_path, 'wb');
-% fwrite(file_id, coeff_integr_int, DATA_TYPE, 'ieee-be');
-% fclose(file_id);
-% 
-% integr_coeff_wl_file_path = [DATA_PATH, INTEGR_COEFF_WL_FILE_NAME, '.bin'];
-% file_id = fopen(integr_coeff_wl_file_path, 'wb');
-% fwrite(file_id, wordlength_integr, DATA_TYPE, 'ieee-be');
-% fclose(file_id);
-% 
-% integr_coeff_fl_file_path = [DATA_PATH, INTEGR_COEFF_FL_FILE_NAME, '.bin'];
-% file_id = fopen(integr_coeff_fl_file_path, 'wb');
-% fwrite(file_id, fractional_length_integr, DATA_TYPE, 'ieee-be');
-% fclose(file_id);
-
 %% Генерирование входных данных
+
 if strcmp(GET_INPUT_DATA, 'generate')
     f = FS/8;
     t = 0:1/FS:(N-1)/FS;
-    signal = round(AMP * sin(2*pi*f*t) * (2^FRACTIONAL_LENGTH));
+    signal  = AMP * sin(2*pi*f*t);
     file_id = fopen([DATA_PATH, INPUT_DATA_FILE_NAME], 'w');
+    signal_fix = round(signal * 2^FRACTIONAL_LENGTH);
     for i = 1:N
-        bin_repr = dec2bin(signal(i));
+        bin_repr = dec2bin(signal_fix(i));
         if length(bin_repr) < DATA_WIDTH
             zero_num = DATA_WIDTH - length(bin_repr); 
             for j = 1:zero_num
-                if (signal(i) < 0)
+                if (signal_fix(i) < 0)
                     bin_repr = ['1', bin_repr];
                 else
                     bin_repr = ['0', bin_repr];
@@ -196,22 +88,128 @@ else
     error("Неправильно выбран способ получения входного сигнала")
 end
 
+if (isequal(FILTER_MODE, 'differentiator'))
+    ctrl = zeros(1, length(t));
+elseif isequal(FILTER_MODE, 'integrator') 
+    ctrl = ones(1, length(t));
+end
+ctrl = [t', ctrl'];
+test_signal = [t', signal'];
+
+%% Запуск модели в Simulink
+ts = 1/FS;
+model_dec = start_simulink(signal, t, DEBUG, DATA_PATH);
+
+
 %% Ожидание запуска симуляции
 disp("Запустите симуляцию")
 pause();
 
 %% Обработка данных симуляции
 
-file_id       = fopen([DATA_PATH, OUTPUT_DATA_FILE_NAME], 'r');
-filter_output = fscanf(file_id, '%s');
-fclose(file_id);
-filter_output_dec = zeros(1, N);
-for i = 1:N
-    a = fi(0,1,WORDLENGTH, FRACTIONAL_LENGTH);
-    a.bin = filter_output((i-1)*WORDLENGTH+1:i*WORDLENGTH);
-    filter_output_dec(i) = double(a);
+filter_output = read_data_from_sim([DATA_PATH, OUTPUT_DATA_FILE_NAME], N, ...
+                                   WORDLENGTH, FRACTIONAL_LENGTH);
+
+mult_rtl   = zeros(N, MULT_NUM);
+mult_model = zeros(N, MULT_NUM);
+for i = 1:(FILTER_ORDER+1)/2
+    mult_rtl(:, i) = read_data_from_sim([DATA_PATH, 'mult_', num2str(i-1), '.txt'], ...
+                                        N, WORDLENGTH_MULT(i), FRACLENGTH_MULT(i)); 
+    
+    file_id         = fopen([DATA_PATH, 'mult_', num2str(i-1)], 'rb');
+    mult_model(:,i) = fread(file_id, N, 'double');
+    fclose(file_id);
+
 end
-plot(filter_output_dec)
+
+plot(filter_output)
 hold on 
 plot(model_dec)
 hold off
+
+if (isequal(mult_model, mult_rtl))
+    disp("Данные с выхода умножителей совпали")
+else
+    disp("ОШИБКА!! Данные с выхода умножителей не совпали")
+end
+
+%% Функции
+
+function output_data = start_simulink(signal, t, debug, file_path)
+    
+    
+    if nargin < 3
+        debug = 0;
+    end
+
+    if ((nargin < 4) && debug)
+        file_path = '.\';
+    end
+
+    test_signal = [t', signal'];
+
+    sim("models_diff_integr.slx");
+    output_data = ans.fp_out_signal.data;
+
+    mult_0_data = ans.mult_0.data;
+    mult_1_data = ans.mult_1.data;
+    mult_2_data = ans.mult_2.data;
+    mult_3_data = ans.mult_3.data;
+    mult_4_data = ans.mult_4.data;
+    
+    if (debug)
+
+        file_id = fopen([file_path, 'mult_0'], 'wb');
+        fwrite(file_id, mult_0_data, 'double');
+        fclose(file_id);
+
+        file_id = fopen([file_path, 'mult_1'], 'wb');
+        fwrite(file_id, mult_1_data, 'double');
+        fclose(file_id);
+
+        file_id = fopen([file_path, 'mult_2'], 'wb');
+        fwrite(file_id, mult_2_data, 'double');
+        fclose(file_id);
+
+        file_id = fopen([file_path, 'mult_3'], 'wb');
+        fwrite(file_id, mult_3_data, 'double');
+        fclose(file_id);
+
+        file_id = fopen([file_path, 'mult_4'], 'wb');
+        fwrite(file_id, mult_4_data, 'double');
+        fclose(file_id);
+
+    end
+
+end
+
+function data_decimal = read_data_from_sim(file_path, data_length, wl, fl)
+    
+    file_id   = fopen(file_path, 'r');
+    data_char = fscanf(file_id, '%s');
+    fclose(file_id);
+    
+    check_length = 32;
+    mask         = zeros(1, check_length);
+    for i = 1:round(length(data_char)/check_length)
+        alpha_pos = isstrprop(data_char(1:check_length), 'alpha');
+        if(isequal(alpha_pos, mask))
+            break;
+        else
+            data_char(1) = [];
+            j = 2;
+            while (alpha_pos(j))
+                data_char(1) = [];
+                j = j + 1;
+            end
+        end
+    end
+    
+    data_decimal = zeros(1, data_length);
+    for i = 1:data_length
+        a               = fi(0,1,wl, fl);
+        a.bin           = data_char((i-1)*wl+1:i*wl);
+        data_decimal(i) = double(a);
+    end
+    
+end

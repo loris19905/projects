@@ -157,6 +157,9 @@ if strcmp(FILTER_MODE, 'differentiator') || strcmp(FILTER_MODE, 'both')
                         bin_repr = ['0', bin_repr];
                     end
                 end
+            elseif length(bin_repr) > WORDLENGTH
+                delete_bits_num             = length(bin_repr) - WORDLENGTH;
+                bin_repr(1:delete_bits_num) = [];
             end
             fprintf(file_id, '%s\n', bin_repr);
         end

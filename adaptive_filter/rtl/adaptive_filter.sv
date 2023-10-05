@@ -55,7 +55,7 @@ module adaptive_filter
 
             if (s_tvalid) begin
                 loop_tdata[0] <= summ_res[FIR_DIFF_COEFF_NUM-1];
-                m_tdata <= (summ_res[4][-7]) ? summ_res[4][7:-6] + 1 : summ_res[4][7:-6];
+                m_tdata       <= (summ_res[4][-7]) ? summ_res[4][7:-6] + 1 : summ_res[4][7:-6];
             end else begin
                 loop_tdata[0] <= loop_tdata[0];
                 m_tdata       <= m_tdata;
@@ -119,6 +119,7 @@ module adaptive_filter
             mult_res_tmp_3 = '0;  
             mult_res_tmp_4 = '0;
         end else begin
+
             for (int i = 0; i < FIR_DIFF_COEFF_NUM; i++) begin
                 if (i == 0) begin
                     diff_res[i] = $signed(s_tdata) - $signed(s_tdata_d[FIR_DIFF_ORDER-1]);
@@ -148,45 +149,16 @@ module adaptive_filter
             mult_res_0      = $signed(mult_coeff_0) * $signed(diff_res[0]);
 
             mult_res_tmp_1  = $signed(mult_coeff_1) * $signed(diff_res[1]);
-            mult_res_1      = mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]];
-            /*
-            if (mult_res_tmp_1[OP_DIFF_WL+DIFF_COEFF_WL[1]-DIFF_COEFF_FL[1]-OP_DIFF_FL-1]) begin
-                mult_res_1 = (mult_res_tmp_1[-MULTYPLYERS_FL[1]-1]) ? mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]] - 1 : mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]];
-            end else begin
-                mult_res_1 = (mult_res_tmp_1[-MULTYPLYERS_FL[1]-1]) ? mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]] + 1 : mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]]; 
-            end     //надо еще дописать округление
-            */
+            mult_res_1      = (mult_res_tmp_1[-MULTYPLYERS_FL[1]-1]) ? mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]] + 1 : mult_res_tmp_1[MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]];
 
             mult_res_tmp_2  = $signed(mult_coeff_2) * $signed(diff_res[2]);
-            mult_res_2      = mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]];
-            /*
-            if (mult_res_tmp_2[OP_DIFF_WL+DIFF_COEFF_WL[2]-DIFF_COEFF_FL[2]-OP_DIFF_FL-1]) begin
-                mult_res_2 = (mult_res_tmp_2[-MULTYPLYERS_FL[2]-1]) ? mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]] - 1 : mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]];
-            end else begin
-                mult_res_2 = (mult_res_tmp_2[-MULTYPLYERS_FL[2]-1]) ? mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]] + 1 : mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]]; 
-            end
-            */
+            mult_res_2      = (mult_res_tmp_2[-MULTYPLYERS_FL[2]-1]) ? mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]] + 1 : mult_res_tmp_2[MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]];
 
             mult_res_tmp_3  = $signed(mult_coeff_3) * $signed(diff_res[3]);
-            mult_res_3      = mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]];
+            mult_res_3      = (mult_res_tmp_3[-MULTYPLYERS_FL[3]-1]) ? mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]] + 1 : mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]];
             
-            /*
-            if (mult_res_tmp_3[OP_DIFF_WL+DIFF_COEFF_WL[3]-DIFF_COEFF_FL[3]-OP_DIFF_FL-1]) begin
-                mult_res_3 = (mult_res_tmp_3[-MULTYPLYERS_FL[3]-1]) ? mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]] - 1 : mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]];
-            end else begin
-                mult_res_3 = (mult_res_tmp_3[-MULTYPLYERS_FL[3]-1]) ? mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]] + 1 : mult_res_tmp_3[MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]]; 
-            end
-            */
-
             mult_res_tmp_4  = $signed(mult_coeff_4) * $signed(diff_res[4]);
-            mult_res_4      = mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]];
-            /*
-            if (mult_res_tmp_4[OP_DIFF_WL+DIFF_COEFF_WL[4]-DIFF_COEFF_FL[4]-OP_DIFF_FL-1]) begin
-                mult_res_4 = (mult_res_tmp_4[-MULTYPLYERS_FL[4]-1]) ? mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]] - 1 : mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]];
-            end else begin
-                mult_res_4 = (mult_res_tmp_4[-MULTYPLYERS_FL[4]-1]) ? mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]] + 1 : mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]]; 
-            end
-            */
+            mult_res_4      = (mult_res_tmp_4[-MULTYPLYERS_FL[4]-1]) ? mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]] + 1 : mult_res_tmp_4[MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]];
 
             summ_res[0] = $signed(mult_res_0 ) + $signed({mult_res_1, zeros_summ_res_0});
             summ_res[1] = $signed(summ_res[0]) + $signed(mult_res_2);
@@ -197,4 +169,74 @@ module adaptive_filter
         end
         
     end
+
+    //Debug
+    (* synthesys_off *)
+
+    localparam DATA_LENGTH = 128;
+    localparam DATA_DIR    = "C:\\MyFolder\\RemoteFolder\\projects\\adaptive_filter\\tbn\\data\\";
+
+    logic [$clog2(DATA_LENGTH)-1:0]                                  cnt_data;
+    logic                                                            finish_data_transfer;
+    logic [MULTYPLYERS_WL[0]-MULTYPLYERS_FL[0]-1:-MULTYPLYERS_FL[0]] mult_res_0_mem [DATA_LENGTH-1:0];
+    logic [MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]] mult_res_1_mem [DATA_LENGTH-1:0];
+    logic [MULTYPLYERS_WL[2]-MULTYPLYERS_FL[2]-1:-MULTYPLYERS_FL[2]] mult_res_2_mem [DATA_LENGTH-1:0];
+    logic [MULTYPLYERS_WL[3]-MULTYPLYERS_FL[3]-1:-MULTYPLYERS_FL[3]] mult_res_3_mem [DATA_LENGTH-1:0];
+    logic [MULTYPLYERS_WL[4]-MULTYPLYERS_FL[4]-1:-MULTYPLYERS_FL[4]] mult_res_4_mem [DATA_LENGTH-1:0];
+
+    always_ff @(posedge clk) begin
+        if (srst) begin
+            cnt_data             <= '0;
+
+            foreach (mult_res_0_mem[element]) begin
+                mult_res_0_mem[element] <= '0;
+            end
+
+            foreach (mult_res_1_mem[element]) begin
+                mult_res_1_mem[element] <= '0;
+            end
+
+            foreach (mult_res_2_mem[element]) begin
+                mult_res_2_mem[element] <= '0;
+            end
+
+            foreach (mult_res_3_mem[element]) begin
+                mult_res_3_mem[element] <= '0;
+            end
+
+            foreach (mult_res_4_mem[element]) begin
+                mult_res_4_mem[element] <= '0;
+            end
+
+        end else begin
+            if (s_tvalid) begin
+                cnt_data                 <= cnt_data + 1;
+                mult_res_0_mem[cnt_data] <= mult_res_0;
+                mult_res_1_mem[cnt_data] <= mult_res_1;
+                mult_res_2_mem[cnt_data] <= mult_res_2;
+                mult_res_3_mem[cnt_data] <= mult_res_3;
+                mult_res_4_mem[cnt_data] <= mult_res_4;
+                finish_data_transfer     <= (cnt_data == (DATA_LENGTH - 1)) ? 1'b1 : 1'b0;
+            end else begin
+                cnt_data             <= cnt_data;
+                mult_res_0_mem       <= mult_res_0_mem;
+                mult_res_1_mem       <= mult_res_1_mem;
+                mult_res_2_mem       <= mult_res_2_mem;
+                mult_res_3_mem       <= mult_res_3_mem;
+                mult_res_4_mem       <= mult_res_4_mem;
+                finish_data_transfer <= finish_data_transfer;
+            end
+        end
+    end
+
+    always @(*) begin
+        if (finish_data_transfer) begin
+            $writememb({DATA_DIR, "mult_0.txt"}, mult_res_0_mem);
+            $writememb({DATA_DIR, "mult_1.txt"}, mult_res_1_mem);
+            $writememb({DATA_DIR, "mult_2.txt"}, mult_res_2_mem);
+            $writememb({DATA_DIR, "mult_3.txt"}, mult_res_3_mem);
+            $writememb({DATA_DIR, "mult_4.txt"}, mult_res_4_mem);
+        end
+    end
+
 endmodule

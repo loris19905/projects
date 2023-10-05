@@ -30,3 +30,16 @@
 *.bin
 *.asv
 *.xml
+*.rpt
+*.vds
+*.js
+*.dcp
+*.rst
+*.udo
+*.qdb
+*.qpg
+*.qtl
+*.wlf
+*.do
+*.sh
+*.mat
