@@ -9,6 +9,8 @@
 module adaptive_filter_tb (
 );
 
+    localparam FILTER_MODE       = 0; // если 0 - дифференцирование, 1 - интегрирование
+    
     localparam WORDLEGTH         = 14;
     localparam FRACTIONAL_LENGTH = 6;
 
@@ -51,15 +53,15 @@ module adaptive_filter_tb (
     end
 
     adaptive_filter dut (
-        .clk      (clk     ),
-        .srst     (srst    ),
-        .ctrl     (1'b0    ),
+        .clk      (clk        ),
+        .srst     (srst       ),
+        .ctrl     (FILTER_MODE),
 
-        .s_tdata  (s_tdata ),
-        .s_tvalid (s_tvalid),
+        .s_tdata  (s_tdata    ),
+        .s_tvalid (s_tvalid   ),
 
-        .m_tdata  (m_tdata ),
-        .m_tvalid (m_tvalid)
+        .m_tdata  (m_tdata    ),
+        .m_tvalid (m_tvalid   )
     );
 
     logic [$clog2(DATA_NUM)-1:0] cnt_output_data;

@@ -9,6 +9,10 @@ FILTER_MODE    = 'differentiator'; % 'integrator', 'differentiator'
 GET_INPUT_DATA = 'generate';       % 'generate', 'read'
 DEBUG          = 1;
 
+N    = 128;
+FS   = 1;
+AMP  = 10;
+
 %% Начальные данные
 INT16_SIZE              = 16;
 DATA_WIDTH              = 14;
@@ -21,10 +25,6 @@ MODEL_DATA_FILE_NAME  = ['model_data', '_', FILTER_MODE];
 FILTER_ORDER = 9;
 MULT_NUM     = (FILTER_ORDER + 1) / 2;
 DIFF_NUM     = MULT_NUM;
-
-N    = 128;
-FS   = 1;
-AMP  = 10;
 Time = N/FS;
 
 

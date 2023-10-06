@@ -1,6 +1,6 @@
 package adaptive_filter_pkg;
 
-	localparam DATA_WIDTH 		 = 14;
+	localparam WORDLENGTH 		 = 14;
 	localparam FRACTIONAL_LENGTH = 6;
 	
 	localparam FIR_DIFF_ORDER 	  = 9;

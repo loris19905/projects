@@ -1,13 +1,21 @@
+%%
+estimate_resolution;
+clearvars -except coeff_integrator coeff;
+clc;
+close all;
+
 %% ѕараметры управлени€ скриптом
 
 MAKE_PLOT         = 0;
 FILTER_MODE       = 'differentiator'; % 'integrator', 'differentiator', 'both'
-SINGLE_TONE_TEST  = 1;                      % ≈сли 1, то подаетс€ 1 амлитуда в модель; если 0, то моделируетс€ весь диапазон значений
-
-%% Ќачальные данные
+SINGLE_TONE_TEST  = 1;                % ≈сли 1, то подаетс€ 1 амлитуда в модель; если 0, то моделируетс€ весь диапазон значений
 
 INPUT_FREQ_VECTOR = 1/8;
 AMPLITUDE         = 10;
+N                 = 128;
+FS                = 1;
+
+%% Ќачальные данные
 
 BANDWIDTH         = 0.35;
 FREQ_RANGE        = 0.01:0.0001:BANDWIDTH;
@@ -19,8 +27,7 @@ MODEL_DATA_FILE_NAME = 'model_data';
 DATA_FILE_PATH       = '..\data\'; 
 INPUT_DATA_FILE_NAME = 'data_in.txt';
 
-FS   = 1;
-N    = 128; 
+ 
 t    = 0:1/FS:(N-1)/min(INPUT_FREQ_VECTOR);
 Time = length(t)/FS;
 

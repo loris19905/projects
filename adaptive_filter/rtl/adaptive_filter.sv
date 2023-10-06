@@ -23,7 +23,7 @@ module adaptive_filter
     localparam REG_ZERO_START_ADDR = 6;
     localparam DELAY_FEEDBACK_LOOP = 2;
 
-    logic [FIR_DIFF_ORDER-1:0     ][DATA_WIDTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] s_tdata_d;
+    logic [FIR_DIFF_ORDER-1:0     ][WORDLENGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] s_tdata_d;
     logic [DELAY_FEEDBACK_LOOP-1:0][OP_SUMM_WL-OP_SUMM_FL-1:-OP_SUMM_FL]              loop_tdata;
     logic s_tvalid_d;
 
