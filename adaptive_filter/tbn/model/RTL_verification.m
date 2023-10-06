@@ -5,7 +5,6 @@ clc;
 close all;
 %% Параметры
 
-
 FILTER_MODE    = 'differentiator'; % 'integrator', 'differentiator'
 GET_INPUT_DATA = 'generate';       % 'generate', 'read'
 DEBUG          = 1;
@@ -110,51 +109,59 @@ disp("Запустите симуляцию")
 pause();
 
 %% Обработка данных симуляции
-
-filter_output = read_data_from_sim([DATA_PATH, OUTPUT_DATA_FILE_NAME], N, ...
-                                   WORDLENGTH, FRACTIONAL_LENGTH);
-
-mult_rtl   = zeros(N, MULT_NUM);
-mult_model = zeros(N, MULT_NUM);
-
-diff_rtl   = zeros(1, MULT_NUM*N);
-diff_model = zeros(N, MULT_NUM);
-
-for i = 1:(FILTER_ORDER+1)/2
-    mult_rtl(:, i) = read_data_from_sim([DATA_PATH, 'mult_', num2str(i-1), '.txt'], ...
-                                        N, WORDLENGTH_MULT(i), FRACLENGTH_MULT(i));
+if (DEBUG)
+    filter_output = read_data_from_sim([DATA_PATH, OUTPUT_DATA_FILE_NAME], N, ...
+                                       WORDLENGTH, FRACTIONAL_LENGTH);
     
-    file_id         = fopen([DATA_PATH, 'mult_', num2str(i-1)], 'rb');
-    mult_model(:,i) = fread(file_id, N, 'double');
-    fclose(file_id);
+    mult_rtl   = zeros(N, MULT_NUM);
+    mult_model = zeros(N, MULT_NUM);
+    
+    diff_rtl   = zeros(1, MULT_NUM*N);
+    diff_model = zeros(N, MULT_NUM);
+    
+    for i = 1:(FILTER_ORDER+1)/2
+        mult_rtl(:, i) = read_data_from_sim([DATA_PATH, 'mult_', num2str(i-1), '.txt'], ...
+                                            N, WORDLENGTH_MULT(i), FRACLENGTH_MULT(i));
+        
+        file_id         = fopen([DATA_PATH, 'mult_', num2str(i-1)], 'rb');
+        mult_model(:,i) = fread(file_id, N, 'double');
+        fclose(file_id);
+    
+        file_id         = fopen([DATA_PATH, 'diff_', num2str(i-1)], 'rb');
+        diff_model(:,i) = fread(file_id, N, 'double');
+        fclose(file_id);
+    
+    end
+    
+    diff_rtl = read_data_from_sim([DATA_PATH, 'diff', '.txt'], ...
+                                  N*MULT_NUM, OP_DIFF_WL, OP_DIFF_FL);
+    
+    diff_rtl = reshape(diff_rtl, DIFF_NUM, N);
+    diff_rtl = diff_rtl';
+    
+    plot(filter_output)
+    hold on 
+    plot(model_dec)
+    hold off
+    
+    if (isequal(diff_model, diff_rtl))
+        disp("Данные с выхода блоков вычитания совпали")
+    else
+        disp("ОШИБКА!! Данные с выхода блоков вычитания не совпали")
+    end
+    
+    if (isequal(mult_model, mult_rtl))
+        disp("Данные с выхода умножителей совпали")
+    else
+        disp("ОШИБКА!! Данные с выхода умножителей не совпали")
+    end
+    
+    if (isequal(filter_output, model_dec(1:N)'))
+        disp("Simulink-модель совпала с RTL")
+    else
+        disp("ОШИБКА!! RTL не соответствует Simulink-модели")
+    end
 
-    file_id         = fopen([DATA_PATH, 'diff_', num2str(i-1)], 'rb');
-    diff_model(:,i) = fread(file_id, N, 'double');
-    fclose(file_id);
-
-end
-
-diff_rtl = read_data_from_sim([DATA_PATH, 'diff', '.txt'], ...
-                              N*MULT_NUM, OP_DIFF_WL, OP_DIFF_FL);
-
-diff_rtl = reshape(diff_rtl, DIFF_NUM, N);
-diff_rtl = diff_rtl';
-
-plot(filter_output)
-hold on 
-plot(model_dec)
-hold off
-
-if (isequal(diff_model, diff_rtl))
-    disp("Данные с выхода блоков вычитания совпали")
-else
-    disp("ОШИБКА!! Данные с выхода блоков вычитания не совпали")
-end
-
-if (isequal(mult_model, mult_rtl))
-    disp("Данные с выхода умножителей совпали")
-else
-    disp("ОШИБКА!! Данные с выхода умножителей не совпали")
 end
 
 %% Функции

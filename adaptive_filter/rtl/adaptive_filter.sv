@@ -176,8 +176,8 @@ module adaptive_filter
     localparam DATA_LENGTH = 128;
     localparam DATA_DIR    = "C:\\MyFolder\\RemoteFolder\\projects\\adaptive_filter\\tbn\\data\\";
 
-    logic [$clog2(DATA_LENGTH)-1:0]                                  cnt_data;
-    logic                                                            finish_data_transfer;
+    logic [$clog2(DATA_LENGTH)-1:0] cnt_data;
+    logic                           finish_data_transfer;
 
     logic [MULTYPLYERS_WL[0]-MULTYPLYERS_FL[0]-1:-MULTYPLYERS_FL[0]] mult_res_0_mem [DATA_LENGTH-1:0];
     logic [MULTYPLYERS_WL[1]-MULTYPLYERS_FL[1]-1:-MULTYPLYERS_FL[1]] mult_res_1_mem [DATA_LENGTH-1:0];
@@ -251,20 +251,7 @@ module adaptive_filter
             $writememb({DATA_DIR, "mult_2.txt"}, mult_res_2_mem);
             $writememb({DATA_DIR, "mult_3.txt"}, mult_res_3_mem);
             $writememb({DATA_DIR, "mult_4.txt"}, mult_res_4_mem);
-
             $writememb({DATA_DIR, "diff.txt"}, diff_res_mem);
-            /*
-            for (int i = 0; i < FIR_DIFF_COEFF_NUM; i++) begin
-                string filename;
-                filename = {"diff_", $sformatf("%d.txt", i)};
-                fd       = $fopen({DATA_DIR, filename},"wb");
-                for (int j = 0; j < DATA_LENGTH; j++) begin
-                    $fwrite(fd, diff_res_mem[j][i]);
-                end
-                $fclose(fd);
-            end
-            */
-
         end
     end
 

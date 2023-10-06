@@ -149,6 +149,11 @@ for j = 1:(order(end)+1)/2
 
 end
 %% Покажем распределение ошибки вдоль полосы для дифференциатора
+coeff = Num;
+
+for i = 1:length(coeff)
+    coeff(i) = double(fi(coeff(i), 1, resolution_diff(i) + 2, resolution_diff(i)));
+end
 
 dB_diff_fp = 20 * log10(abs(coeff * mult));
 error_diff = abs(dB_diff_fp - dB_func_diff);
