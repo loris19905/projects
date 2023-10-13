@@ -23,8 +23,26 @@ module adaptive_filter
     localparam REG_ZERO_START_ADDR = 6;
     localparam DELAY_FEEDBACK_LOOP = 2;
 
+    logic [DIFF_COEFF_WL[0]-DIFF_COEFF_FL[0]-1:-DIFF_COEFF_FL[0]] fir_diff_coeff_a0;
+    logic [DIFF_COEFF_WL[1]-DIFF_COEFF_FL[1]-1:-DIFF_COEFF_FL[1]] fir_diff_coeff_a1;
+    logic [DIFF_COEFF_WL[2]-DIFF_COEFF_FL[2]-1:-DIFF_COEFF_FL[2]] fir_diff_coeff_a2;
+    logic [DIFF_COEFF_WL[3]-DIFF_COEFF_FL[3]-1:-DIFF_COEFF_FL[3]] fir_diff_coeff_a3;
+    logic [DIFF_COEFF_WL[4]-DIFF_COEFF_FL[4]-1:-DIFF_COEFF_FL[4]] fir_diff_coeff_a4;
+
+    assign fir_diff_coeff_a0 = 8'hFF;
+    assign fir_diff_coeff_a1 = 9'h019;
+    assign fir_diff_coeff_a2 = 9'h1CD;
+    assign fir_diff_coeff_a3 = 6'h07;
+    assign fir_diff_coeff_a4 = 7'h13;
+
+    logic [INTEGR_COEFF_WL[0]-INTEGR_COEFF_FL[0]-1:-INTEGR_COEFF_FL[0]] fir_integr_coeff_a0;
+    logic [INTEGR_COEFF_WL[1]-INTEGR_COEFF_FL[1]-1:-INTEGR_COEFF_FL[1]] fir_integr_coeff_a1;
+
+    assign fir_integr_coeff_a0 = 7'h17;
+    assign fir_integr_coeff_a1 = 6'h29; 
+
     logic [FIR_DIFF_ORDER-1:0     ][WORDLENGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] s_tdata_d;
-    logic [DELAY_FEEDBACK_LOOP-1:0][OP_SUMM_WL-OP_SUMM_FL-1:-OP_SUMM_FL]              loop_tdata;
+    logic [DELAY_FEEDBACK_LOOP-1:0][OP_SUMM_WL-OP_SUMM_FL-1:-OP_SUMM_FL]               loop_tdata;
     logic s_tvalid_d;
 
     logic [FIR_DIFF_COEFF_NUM-1:0][OP_SUMM_WL-OP_SUMM_FL-1:-OP_SUMM_FL] summ_res;

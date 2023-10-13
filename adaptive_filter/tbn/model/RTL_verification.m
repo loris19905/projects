@@ -7,6 +7,7 @@ close all;
 
 FILTER_MODE    = 'differentiator'; % 'integrator', 'differentiator'
 GET_INPUT_DATA = 'generate';       % 'generate', 'read'
+START_RTL      = 1;
 DEBUG          = 1;
 
 N    = 128;
@@ -20,7 +21,7 @@ DATA_WIDTH              = 14;
 DATA_PATH             = '..\data\';
 INPUT_DATA_FILE_NAME  = 'data_in.txt';
 OUTPUT_DATA_FILE_NAME = 'data_out.txt';
-MODEL_DATA_FILE_NAME  = ['model_data', '_', FILTER_MODE];
+MODEL_DATA_FILE_NAME  = ['model_data', '_', FILTER_MODE, '.txt'];
 
 FILTER_ORDER = 9;
 MULT_NUM     = (FILTER_ORDER + 1) / 2;
@@ -102,11 +103,32 @@ test_signal = [t', signal'];
 %% Запуск модели в Simulink
 ts = 1/FS;
 model_dec = start_simulink(signal, t, DEBUG, DATA_PATH);
+file_id = fopen([DATA_PATH, MODEL_DATA_FILE_NAME], 'w');
+for i = 1:N
+    model_str = dec2bin(round(model_dec(i) * 2^FRACTIONAL_LENGTH));
+    if (length(model_str) < WORDLENGTH)
+        if (model_dec(i) >= 0)
+            for j = 1 : WORDLENGTH - length(model_str)
+                model_str = ['0', model_str];
+            end
+        elseif (model_dec(i) < 0)
+            for j = 1 : WORDLENGTH - length(model_str)
+                model_str = ['1', model_str];
+            end
+        end
+    elseif (length(model_str) > WORDLENGTH)
+        model_str(1:length(model_str)-WORDLENGTH) = [];
+    end
+    fprintf(file_id, '%s\n', model_str);
+end
+fclose(file_id);
 
 
 %% Ожидание запуска симуляции
-disp("Запустите симуляцию")
-pause();
+if (START_RTL)
+    disp("Запустите симуляцию")
+    pause();
+end
 
 %% Обработка данных симуляции
 if (DEBUG)

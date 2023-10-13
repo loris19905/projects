@@ -10,14 +10,16 @@ module adaptive_filter_tb (
 );
 
     localparam FILTER_MODE       = 0; // если 0 - дифференцирование, 1 - интегрирование
-    
+
     localparam WORDLEGTH         = 14;
     localparam FRACTIONAL_LENGTH = 6;
 
     localparam DATA_NUM         = 128;
     localparam DATA_DIR         = "C:\\MyFolder\\RemoteFolder\\projects\\adaptive_filter\\tbn\\data\\";
+
     localparam INPUT_FILE_NAME  = "data_in.txt";
     localparam OUTPUT_FILE_NAME = "data_out.txt";
+    localparam MODEL_FILE_NAME  = "model_data_differentiator.txt";
 
     logic clk;
     logic srst;
@@ -29,7 +31,9 @@ module adaptive_filter_tb (
     logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] m_tdata;
     logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] m_tdata_mem [DATA_NUM-1:0];
     logic                                                    m_tvalid;
-
+    
+    logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] model_valid_tdata [DATA_NUM-1:0];
+    logic output_is_valid_to_model; 
     logic finish_data_transfer;
 
     always begin
@@ -49,6 +53,7 @@ module adaptive_filter_tb (
         #10;
         srst = 0;
         $readmemb({DATA_DIR, INPUT_FILE_NAME}, s_tdata_mem);
+	$readmemb({DATA_DIR, MODEL_FILE_NAME}, model_valid_tdata);
 
     end
 
@@ -74,11 +79,11 @@ module adaptive_filter_tb (
                 m_tdata_mem[element] <= '0;
             end
 
-            s_tdata              <= '0;
-            cnt_output_data      <= '0;
-            cnt_input_data       <= '0;
-            finish_data_transfer <= '0;
-            s_tvalid             <= 1'b0;
+            s_tdata                  <= '0;
+            cnt_output_data          <= '0;
+            cnt_input_data           <= '0;
+            finish_data_transfer     <= '0;
+            s_tvalid                 <= 1'b0;
 
         end else begin
 
@@ -92,5 +97,14 @@ module adaptive_filter_tb (
         end
 
     end
+
+    always_comb begin
+    	output_is_valid_to_model = (~srst & m_tvalid) ? (m_tdata == model_valid_tdata[cnt_output_data]) : 1'b0;
+    	if (~srst & m_tvalid & output_is_valid_to_model) begin
+    	    $display("Sample %d: correct data", cnt_output_data);
+    	end else if (~srst & m_tvalid & ~output_is_valid_to_model) begin
+    	    $display("Sample %d: error", cnt_output_data);
+    	end
+    end 
 
 endmodule : adaptive_filter_tb
