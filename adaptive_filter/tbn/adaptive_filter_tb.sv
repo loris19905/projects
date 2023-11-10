@@ -24,37 +24,31 @@ module adaptive_filter_tb (
     logic clk;
     logic srst;
 
-    logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] s_tdata;
-    logic                                                    s_tvalid;
-    logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] s_tdata_mem [DATA_NUM-1:0];
+    logic [WORDLEGTH-1:0] s_tdata;
+    logic                 s_tvalid;
+    logic [WORDLEGTH-1:0] s_tdata_mem [DATA_NUM-1:0];
 
-    logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] m_tdata;
-    logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] m_tdata_mem [DATA_NUM-1:0];
-    logic                                                    m_tvalid;
+    logic [WORDLEGTH-1:0] m_tdata;
+    logic [WORDLEGTH-1:0] m_tdata_mem [DATA_NUM-1:0];
+    logic                 m_tvalid;
     
-    logic [WORDLEGTH-FRACTIONAL_LENGTH-1:-FRACTIONAL_LENGTH] model_valid_tdata [DATA_NUM-1:0];
-    logic output_is_valid_to_model; 
-    logic finish_data_transfer;
+    logic [WORDLEGTH-1:0] model_valid_tdata [DATA_NUM-1:0];
+
+    logic                 start_display;
+    logic                 output_is_valid_to_model; 
+    logic                 finish_data_transfer;
 
     always begin
         #2 clk = ~clk;
-
-        if (finish_data_transfer) begin
-            $writememb({DATA_DIR, OUTPUT_FILE_NAME}, m_tdata_mem);
-            $finish;
-        end
-
     end
 
     initial begin
-
         clk  = 1;
         srst = 1;
         #10;
         srst = 0;
         $readmemb({DATA_DIR, INPUT_FILE_NAME}, s_tdata_mem);
-	$readmemb({DATA_DIR, MODEL_FILE_NAME}, model_valid_tdata);
-
+	    $readmemb({DATA_DIR, MODEL_FILE_NAME}, model_valid_tdata);
     end
 
     adaptive_filter dut (
@@ -74,7 +68,6 @@ module adaptive_filter_tb (
 
     always_ff @(posedge clk) begin
         if (srst) begin
-
             foreach (m_tdata_mem[element]) begin
                 m_tdata_mem[element] <= '0;
             end
@@ -84,27 +77,32 @@ module adaptive_filter_tb (
             cnt_input_data           <= '0;
             finish_data_transfer     <= '0;
             s_tvalid                 <= 1'b0;
-
+            start_display            <= 1'b0;
         end else begin
-
             s_tvalid                     <= 1'b1;
             s_tdata                      <= s_tdata_mem[cnt_input_data];
             cnt_input_data               <= cnt_input_data + 1;
             m_tdata_mem[cnt_output_data] <= m_tdata;
             cnt_output_data              <= (m_tvalid) ? cnt_output_data + 1 : cnt_output_data;
             finish_data_transfer         <= (cnt_output_data == (DATA_NUM - 1)) ? 1'b1 : finish_data_transfer;
-        
+            start_display                <= (s_tvalid) ? 1'b1 : start_display;
         end
-
     end
 
-    always_comb begin
-    	output_is_valid_to_model = (~srst & m_tvalid) ? (m_tdata == model_valid_tdata[cnt_output_data]) : 1'b0;
-    	if (~srst & m_tvalid & output_is_valid_to_model) begin
-    	    $display("Sample %d: correct data", cnt_output_data);
-    	end else if (~srst & m_tvalid & ~output_is_valid_to_model) begin
-    	    $display("Sample %d: error", cnt_output_data);
-    	end
-    end 
+    assign output_is_valid_to_model = model_valid_tdata[cnt_output_data] == m_tdata;
+    always_ff @(posedge clk) begin
+        if (start_display) begin
+            if (output_is_valid_to_model) begin
+                $display("Sample %d: PASS",cnt_output_data);
+            end else begin
+                $display("Sample %d: FAIL",cnt_output_data);
+            end
+        end
+
+        if ((cnt_output_data == (DATA_NUM - 1)) && m_tvalid) begin
+            $writememb({DATA_DIR, OUTPUT_FILE_NAME}, m_tdata_mem);
+            $finish();           
+        end
+    end
 
 endmodule : adaptive_filter_tb
