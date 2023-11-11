@@ -91,7 +91,7 @@ module adaptive_filter_tb (
 
     assign output_is_valid_to_model = model_valid_tdata[cnt_output_data] == m_tdata;
     always_ff @(posedge clk) begin
-        if (start_display) begin
+        if (start_display && !finish_data_transfer) begin
             if (output_is_valid_to_model) begin
                 $display("Sample %d: PASS",cnt_output_data);
             end else begin
@@ -99,7 +99,7 @@ module adaptive_filter_tb (
             end
         end
 
-        if ((cnt_output_data == (DATA_NUM - 1)) && m_tvalid) begin
+        if ((cnt_output_data == 0) && finish_data_transfer) begin
             $writememb({DATA_DIR, OUTPUT_FILE_NAME}, m_tdata_mem);
             $finish();           
         end

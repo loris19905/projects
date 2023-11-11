@@ -10,9 +10,10 @@ GET_INPUT_DATA = 'generate';       % 'generate', 'read'
 START_RTL      = 1;
 DEBUG          = 1;
 
+SIGNAL_TYPE = "sine"; % "sine", "noise"
 N    = 128;
 FS   = 1;
-AMP  = 10;
+AMP  = 63.992;
 
 %% Начальные данные
 INT16_SIZE              = 16;
@@ -45,7 +46,13 @@ DATA_TYPE = 'int16';
 if strcmp(GET_INPUT_DATA, 'generate')
     f = FS/8;
     t = 0:1/FS:(N-1)/FS;
-    signal  = AMP * sin(2*pi*f*t);
+    
+    if (strcmp(SIGNAL_TYPE, "sine"))
+        signal  = AMP * sin(2*pi*f*t);
+    elseif (strcmp(SIGNAL_TYPE, "noise"))
+        signal = AMP * rand([1, N]);
+    end
+    
     file_id = fopen([DATA_PATH, INPUT_DATA_FILE_NAME], 'w');
     signal_fix = round(signal * 2^FRACTIONAL_LENGTH);
     for i = 1:N
