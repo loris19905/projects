@@ -171,6 +171,7 @@ if (DEBUG)
     plot(filter_output)
     hold on 
     plot(model_dec)
+    legend("Выходной сигнал модуля", "Выходной сигнал модели")
     hold off
     
     if (isequal(diff_model, diff_rtl))

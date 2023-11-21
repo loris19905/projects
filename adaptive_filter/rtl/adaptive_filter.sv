@@ -45,33 +45,40 @@ module adaptive_filter
     logic [DELAY_FEEDBACK_LOOP-1:0][OP_SUMM_WL-1:0] loop_tdata;
     logic s_tvalid_d;
 
+    logic [WORDLENGTH-1:0] s_tdata_reg;
+    logic                  s_tvalid_reg;
+    logic                  ctrl_reg;
+
     logic [FIR_DIFF_COEFF_NUM-1:0][OP_SUMM_WL-1:0] summ_res;
 
     always_ff @(posedge clk) begin
         if (srst) begin
-            s_tdata_d  <= '0;
-            loop_tdata <= '0;
-            m_tdata    <= '0;
-            s_tvalid_d <= '0;
-            m_tvalid   <= '0;  
+            s_tdata_d    <= '0;
+            loop_tdata   <= '0;
+            m_tdata      <= '0;
+            s_tvalid_d   <= '0;
+            m_tvalid     <= '0;
+            s_tdata_reg  <= '0;
+            s_tvalid_reg <= '0;
+            ctrl_reg     <= '0;  
         end else begin
             for (int i = 0; i < FIR_DIFF_ORDER; i++) begin
                 if (i == 0) begin
-                    s_tdata_d[i] <= (s_tvalid) ? s_tdata : s_tdata_d[i];
+                    s_tdata_d[i] <= (s_tvalid_reg) ? s_tdata_reg : s_tdata_d[i];
                 end else begin
-                    if (ctrl) begin
-                        if (s_tvalid) begin
+                    if (ctrl_reg) begin
+                        if (s_tvalid_reg) begin
                             s_tdata_d[i] <= (i >= REG_ZERO_START_ADDR) ? '0 : s_tdata_d[i-1];
                         end else begin    
                             s_tdata_d[i] <= s_tdata_d[i];
                         end
                     end else begin
-                        s_tdata_d[i] <= (s_tvalid) ? s_tdata_d[i-1] : s_tdata_d[i];
+                        s_tdata_d[i] <= (s_tvalid_reg) ? s_tdata_d[i-1] : s_tdata_d[i];
                     end
                 end
             end
 
-            if (s_tvalid) begin
+            if (s_tvalid_reg) begin
                 loop_tdata[0] <= summ_res[FIR_DIFF_COEFF_NUM-1];
                 m_tdata       <= (summ_res[4][OP_SUMM_FL-FRACTIONAL_LENGTH-1]) ? summ_res[4][WORDLENGTH+OP_SUMM_FL-FRACTIONAL_LENGTH-1:OP_SUMM_FL-FRACTIONAL_LENGTH] + 1 : 
                                                                                  summ_res[4][WORDLENGTH+OP_SUMM_FL-FRACTIONAL_LENGTH-1:OP_SUMM_FL-FRACTIONAL_LENGTH];
@@ -81,13 +88,16 @@ module adaptive_filter
             end
 
             if (s_tvalid_d) begin
-                loop_tdata[DELAY_FEEDBACK_LOOP-1] <= (ctrl) ? loop_tdata[0] : '0;
+                loop_tdata[DELAY_FEEDBACK_LOOP-1] <= (ctrl_reg) ? loop_tdata[0] : '0;
             end else begin
                 loop_tdata[DELAY_FEEDBACK_LOOP-1] <= loop_tdata[DELAY_FEEDBACK_LOOP-1];
             end
 
-            m_tvalid   <= s_tvalid;
-            s_tvalid_d <= s_tvalid;
+            s_tdata_reg  <= s_tdata; 
+            s_tvalid_reg <= s_tvalid;
+            m_tvalid     <= s_tvalid_reg;
+            s_tvalid_d   <= s_tvalid_reg;
+            ctrl_reg     <= ctrl;
         end  
     end
 
@@ -139,13 +149,13 @@ module adaptive_filter
         end else begin
             for (int i = 0; i < FIR_DIFF_COEFF_NUM; i++) begin
                 if (i == 0) begin
-                    diff_res[i] = $signed(s_tdata) - $signed(s_tdata_d[FIR_DIFF_ORDER-1]);
+                    diff_res[i] = $signed(s_tdata_reg) - $signed(s_tdata_d[FIR_DIFF_ORDER-1]);
                 end else begin
                     diff_res[i] = $signed(s_tdata_d[i-1]) - $signed(s_tdata_d[FIR_DIFF_ORDER-i-1]);
                 end
             end
             
-            if (ctrl) begin
+            if (ctrl_reg) begin
                 mult_coeff_0 = {'0, fir_integr_coeff_a0};
                 mult_coeff_1 = {'0, fir_integr_coeff_a1, zeros_coeff_mult_1};
                 mult_coeff_2 = {'0, fir_integr_coeff_a0, zeros_coeff_mult_2};
@@ -233,7 +243,7 @@ module adaptive_filter
             end
 
         end else begin
-            if (s_tvalid) begin
+            if (s_tvalid_reg) begin
                 cnt_data                 <= cnt_data + 1;
                 mult_res_0_mem[cnt_data] <= mult_res_0;
                 mult_res_1_mem[cnt_data] <= mult_res_1;

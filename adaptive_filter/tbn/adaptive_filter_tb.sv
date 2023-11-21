@@ -77,19 +77,18 @@ module adaptive_filter_tb (
             cnt_input_data           <= '0;
             finish_data_transfer     <= '0;
             s_tvalid                 <= 1'b0;
-            start_display            <= 1'b0;
         end else begin
             s_tvalid                     <= 1'b1;
             s_tdata                      <= s_tdata_mem[cnt_input_data];
             cnt_input_data               <= cnt_input_data + 1;
             m_tdata_mem[cnt_output_data] <= m_tdata;
             cnt_output_data              <= (m_tvalid) ? cnt_output_data + 1 : cnt_output_data;
-            finish_data_transfer         <= (cnt_output_data == (DATA_NUM - 1)) ? 1'b1 : finish_data_transfer;
-            start_display                <= (s_tvalid) ? 1'b1 : start_display;
+            finish_data_transfer         <= (cnt_output_data == (DATA_NUM - 1)) ? 1'b1 : finish_data_transfer;;
         end
     end
 
     assign output_is_valid_to_model = model_valid_tdata[cnt_output_data] == m_tdata;
+    assign start_display            = m_tvalid;
     always_ff @(posedge clk) begin
         if (start_display && !finish_data_transfer) begin
             if (output_is_valid_to_model) begin
