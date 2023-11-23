@@ -117,6 +117,6 @@
 
 1) Создать папки RTL_Compiler и Encounter
 
-2) Зайти в папку RTL_Compiler, открыть консоль и записать: ../Scripts/synth.tcl
+2) Зайти в папку RTL_Compiler, открыть консоль и записать: RTL_Compiler ../Scripts/synth.tcl
 
-3) Зайти в папку RTL_Compiler, открыть консоль и записать: ../Scripts/adaptive_filter_PaR.tcl
+3) Зайти в папку RTL_Compiler, открыть консоль и записать: Encounter ../Scripts/adaptive_filter_PaR.tcl

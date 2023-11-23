@@ -1,10 +1,8 @@
 `timescale 1ns / 1ns
 
-  /*
-  * Title        : Адаптивный фильтр (дифференциатор, интегратор)
-  * File         : adaptive_filter.sv
-  * Description  : Реализация адаптивного фильтра: по ctrl = 1 фильтр работает в режиме интегратора, ctrl = 0 - в режиме дифференциатора.
-  */
+//Project name: "Adaptive filter"
+//Author:        Kavruk A.
+//File description: RTL
 
 module adaptive_filter 
     import adaptive_filter_pkg::*;

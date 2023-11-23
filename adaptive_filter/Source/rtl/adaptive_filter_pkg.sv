@@ -1,3 +1,7 @@
+//Project name: "Adaptive filter"
+//Author: 		 Kavruk A.
+//File description: Package for RTL parameters
+
 package adaptive_filter_pkg;
 
 	localparam WORDLENGTH 		 = 14;
