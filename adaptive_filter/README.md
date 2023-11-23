@@ -9,22 +9,48 @@
    в среду разработки аналоговых ИС (Cadence Virtuoso) с последующей верификацией (Cadence Assura/PVS).
 
 Структура директории:
-	
-	-rtl
-		-adaptive_filter.sv
-		-adaptive_filter_constr.sdc
-		-adaptive_filter_pkg.sv
-	-tbn
-		-data
-		-model
-			-estimate_resolution.m
-			-models_diff_integr.slx
-			-README(model).txt
-			-RTL_verification.m
-			-Start.m
-		-adaptive_filter_tb.sv
-	-README.md
 
+	-Source
+	
+		-rtl
+			-adaptive_filter.sv
+			-adaptive_filter_constr.sdc
+			-adaptive_filter_pkg.sv
+		-tbn
+			-data
+			-model
+				-estimate_resolution.m
+				-models_diff_integr.slx
+				-README(model).txt
+				-RTL_verification.m
+				-Start.m
+			-adaptive_filter_tb.sv
+		-README.md
+	
+	-Scripts
+		-adaptive_filter_PaR.tcl
+		-fab_fast.tcl
+		-fab_slow.tcl
+		-MMMC.tcl
+		-synth.tcl
+	
+	-Reports
+		-Place_and_Route
+			-*.summary
+		-Synthesis
+			-area_report
+			-timing_report
+	
+	-Outputs
+		-Place_and_Route
+			-adaptive_filter.def
+			-adaptive_filter.sdf
+			-adaptive_filter_logic
+			-asic_filter.v
+			-Module_pins
+		-Synthesis
+			-synth_hdl.v
+	
 
 Назначение файлов:
 
@@ -50,6 +76,35 @@
 9) adaptive_filter_tb.sv      - тестбенч фильтра, внутри подается реализуется чтение файла воздействий, сгенерированный RTL_verification.m; после того, как количество данных на выходе совпадет
 				с количеством данных выходного воздействия, будет записан файл отклика фильтра в директорию ..\data\. Регулируемый параметр - FILTER_MODE
 
+10) adaptive_filter_PaR.tcl   - скрипт используется для автоматизации проектирования в Encounter.
+
+11) fab_fast.tcl 	      - подключение библиотек для синтеза "быстрого" корнера
+
+12) fab_slow.tcl 	      - подключение библиотек для синтеза "быстрого" корнера
+
+13) MMMC.tcl 		      - "Multy-mode Multy-corner", подключение библиотек для этапа создания топологии для различных корнеров
+
+14) synth.tcl 		      - скрипт для запуска процесса логического синтеза
+
+15) .*summary 		      - информация о таймингах на каждом этапе построения топологии
+
+16) area_report		      - предварительная оценка занимаемой площади на этапе логического синтеза
+
+17) timing_report 	      - оценка STA на этапе логического синтеза
+
+18) adaptive_filter.def       - топология фильтра
+
+19) adaptive_filter.sdf       - модель паразитных компонент (используется при повторном прохождении маршрута проектирования)
+
+20) adaptive_filter_logic     - netlist на логическом уровне после получения топологии
+
+21) asic_filter.v 	      - "физический" нетлист
+
+22) Module_pins 	      - карта портов фильтра
+
+23) synth_hdl.v 	      - HDL сгенерированный после логического синтеза
+
+
 Очередность запуска функционального моделирования:
 
 1) Настройка скрипта RTL_verification.m. Далее, когда все будет сгенерировано/прочитано, программа выдаст сообщение в консоль о необходимости запуска симуляции
@@ -57,3 +112,11 @@
 2) Настройка adaptive_filter_tb.sv (выбор режима работы фильтра)
 
 3) Нажать на любую кнопку в консоли Matlab. По окончании программа выдаст в консоль текстовые сообщения об успешности/неуспешности проверки RTL + график отклика модели и симуляции RTL
+
+Очередность запуска скриптов для получения топологии
+
+1) Создать папки RTL_Compiler и Encounter
+
+2) Зайти в папку RTL_Compiler, открыть консоль и записать: ../Scripts/synth.tcl
+
+3) Зайти в папку RTL_Compiler, открыть консоль и записать: ../Scripts/adaptive_filter_PaR.tcl
