@@ -8,6 +8,7 @@ module adaptive_filter_tb (
 );
 
     localparam FILTER_MODE       = 0; // если 0 - дифференцирование, 1 - интегрирование
+    localparam INCLUDE_SDF       = 0;
 
     localparam WORDLEGTH         = 14;
     localparam FRACTIONAL_LENGTH = 6;
@@ -41,6 +42,10 @@ module adaptive_filter_tb (
     end
 
     initial begin
+        if (INCLUDE_SDF) begin
+            $sdf_annotate("../Outputs/Place_and_route/adaptive_filter.sdf", dut);    
+        end
+
         clk  = 1;
         srst = 1;
         #10;
