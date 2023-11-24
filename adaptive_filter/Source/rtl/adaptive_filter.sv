@@ -21,6 +21,7 @@ module adaptive_filter
     localparam REG_ZERO_START_ADDR = 6;
     localparam DELAY_FEEDBACK_LOOP = 2;
 
+    //Коэффициенты импульсной характеристики дифференциатора
     logic [DIFF_COEFF_WL[0]-1:0] fir_diff_coeff_a0;
     logic [DIFF_COEFF_WL[1]-1:0] fir_diff_coeff_a1;
     logic [DIFF_COEFF_WL[2]-1:0] fir_diff_coeff_a2;
@@ -33,21 +34,23 @@ module adaptive_filter
     assign fir_diff_coeff_a3 = 6'h07;
     assign fir_diff_coeff_a4 = 7'h13;
 
+    //Коэффициенты импульсной характеристики интегратора
     logic [INTEGR_COEFF_WL[0]-1:0] fir_integr_coeff_a0;
     logic [INTEGR_COEFF_WL[1]-1:0] fir_integr_coeff_a1;
 
     assign fir_integr_coeff_a0 = 7'h17;
     assign fir_integr_coeff_a1 = 6'h29; 
 
+    //Сдвиговый регистр; защелкивание данных по входу и выходу
     logic [FIR_DIFF_ORDER-1:0     ][WORDLENGTH-1:0] s_tdata_d;
     logic [DELAY_FEEDBACK_LOOP-1:0][OP_SUMM_WL-1:0] loop_tdata;
-    logic s_tvalid_d;
+    logic                                           s_tvalid_d;
 
-    logic [WORDLENGTH-1:0] s_tdata_reg;
-    logic                  s_tvalid_reg;
-    logic                  ctrl_reg;
+    logic [WORDLENGTH-1:0]                          s_tdata_reg;
+    logic                                           s_tvalid_reg;
+    logic                                           ctrl_reg;
 
-    logic [FIR_DIFF_COEFF_NUM-1:0][OP_SUMM_WL-1:0] summ_res;
+    logic [FIR_DIFF_COEFF_NUM-1:0][OP_SUMM_WL-1:0]  summ_res;
 
     always_ff @(posedge clk) begin
         if (srst) begin
@@ -86,7 +89,7 @@ module adaptive_filter
             end
 
             if (s_tvalid_d) begin
-                loop_tdata[DELAY_FEEDBACK_LOOP-1] <= (ctrl_reg) ? loop_tdata[0] : '0;
+                loop_tdata[DELAY_FEEDBACK_LOOP-1] <= loop_tdata[0];
             end else begin
                 loop_tdata[DELAY_FEEDBACK_LOOP-1] <= loop_tdata[DELAY_FEEDBACK_LOOP-1];
             end
@@ -99,51 +102,75 @@ module adaptive_filter
         end  
     end
 
-    logic [FIR_DIFF_COEFF_NUM-1:0][OP_DIFF_WL-OP_DIFF_FL-1:-OP_DIFF_FL] diff_res;
-
-    logic [MULTYPLYERS_WL[0]-1:0]                   mult_res_0;
-    logic [MULTYPLYERS_WL[1]-1:0]                   mult_res_1;
-    logic [MULTYPLYERS_WL[2]-1:0]                   mult_res_2;
-    logic [MULTYPLYERS_WL[3]-1:0]                   mult_res_3;
-    logic [MULTYPLYERS_WL[4]-1:0]                   mult_res_4;
-
-    logic [OP_DIFF_WL+DIFF_COEFF_WL[1]-1:0]         mult_res_tmp_1;
-    logic [OP_DIFF_WL+DIFF_COEFF_WL[2]-1:0]         mult_res_tmp_2;
-    logic [OP_DIFF_WL+DIFF_COEFF_WL[3]-1:0]         mult_res_tmp_3;
-    logic [OP_DIFF_WL+DIFF_COEFF_WL[4]-1:0]         mult_res_tmp_4;
-
-    logic [MULTYPLYERS_FL[0]-MULTYPLYERS_FL[1]-1:0] zeros_summ_res_0;
-    logic [OP_SUMM_FL-MULTYPLYERS_FL[3]-1:0]        zeros_summ_res_2;
-    logic [OP_SUMM_FL-MULTYPLYERS_FL[4]-1:0]        zeros_summ_res_3;
-
-    logic [DIFF_COEFF_FL[1]-INTEGR_COEFF_FL[1]-1:0] zeros_coeff_mult_1;
-    logic [DIFF_COEFF_FL[2]-INTEGR_COEFF_FL[0]-1:0] zeros_coeff_mult_2;
-
+    //Переключение импульсных характеристик
     logic [DIFF_COEFF_WL[0]-1:0]                    mult_coeff_0;
     logic [DIFF_COEFF_WL[1]-1:0]                    mult_coeff_1;
     logic [DIFF_COEFF_WL[2]-1:0]                    mult_coeff_2;
     logic [DIFF_COEFF_WL[3]-1:0]                    mult_coeff_3;
     logic [DIFF_COEFF_WL[4]-1:0]                    mult_coeff_4;
 
-    assign zeros_summ_res_0 = '0;
-    assign zeros_summ_res_2 = '0;
-    assign zeros_summ_res_3 = '0;
+    logic [DIFF_COEFF_FL[1]-INTEGR_COEFF_FL[1]-1:0] zeros_coeff_mult_1;
+    logic [DIFF_COEFF_FL[2]-INTEGR_COEFF_FL[0]-1:0] zeros_coeff_mult_2;
 
     assign zeros_coeff_mult_1 = '0;
     assign zeros_coeff_mult_2 = '0;
 
+    always_ff @(posedge clk) begin
+        if (ctrl) begin
+                mult_coeff_0 <= {'0, fir_integr_coeff_a0};
+                mult_coeff_1 <= {'0, fir_integr_coeff_a1, zeros_coeff_mult_1};
+                mult_coeff_2 <= {'0, fir_integr_coeff_a0, zeros_coeff_mult_2};
+                mult_coeff_3 <= '0;
+                mult_coeff_4 <= '0;    
+        end else begin
+                mult_coeff_0 <= fir_diff_coeff_a0;
+                mult_coeff_1 <= fir_diff_coeff_a1;
+                mult_coeff_2 <= fir_diff_coeff_a2;
+                mult_coeff_3 <= fir_diff_coeff_a3;
+                mult_coeff_4 <= fir_diff_coeff_a4;
+        end
+    end
+
+    logic [FIR_DIFF_COEFF_NUM-1:0][OP_DIFF_WL-OP_DIFF_FL-1:-OP_DIFF_FL] diff_res;
+
+    logic [MULTYPLYERS_WL[0]-1:0]                                       mult_res_0;
+    logic [MULTYPLYERS_WL[1]-1:0]                                       mult_res_1;
+    logic [MULTYPLYERS_WL[2]-1:0]                                       mult_res_2;
+    logic [MULTYPLYERS_WL[3]-1:0]                                       mult_res_3;
+    logic [MULTYPLYERS_WL[4]-1:0]                                       mult_res_4;
+
+    logic [OP_DIFF_WL+DIFF_COEFF_WL[1]-1:0]                             mult_res_tmp_1;
+    logic [OP_DIFF_WL+DIFF_COEFF_WL[2]-1:0]                             mult_res_tmp_2;
+    logic [OP_DIFF_WL+DIFF_COEFF_WL[3]-1:0]                             mult_res_tmp_3;
+    logic [OP_DIFF_WL+DIFF_COEFF_WL[4]-1:0]                             mult_res_tmp_4;
+
+    logic [MULTYPLYERS_FL[0]-MULTYPLYERS_FL[1]-1:0]                     zeros_summ_res_0;
+    logic [OP_SUMM_FL-MULTYPLYERS_FL[3]-1:0]                            zeros_summ_res_2;
+    logic [OP_SUMM_FL-MULTYPLYERS_FL[4]-1:0]                            zeros_summ_res_3;
+
+    
+
+    logic [OP_SUMM_WL-1:0]                                              feedback_operand;
+
+    assign zeros_summ_res_0   = '0;
+    assign zeros_summ_res_2   = '0;
+    assign zeros_summ_res_3   = '0;
+
+    
+
     always_comb begin
         if (srst) begin
-            mult_res_0     = '0;
-            mult_res_1     = '0;
-            mult_res_2     = '0;
-            mult_res_3     = '0;
-            mult_res_4     = '0;
-            summ_res       = '0; 
-            mult_res_tmp_1 = '0;
-            mult_res_tmp_2 = '0;  
-            mult_res_tmp_3 = '0;  
-            mult_res_tmp_4 = '0;
+            mult_res_0       = '0;
+            mult_res_1       = '0;
+            mult_res_2       = '0;
+            mult_res_3       = '0;
+            mult_res_4       = '0;
+            summ_res         = '0;
+            mult_res_tmp_1   = '0;
+            mult_res_tmp_2   = '0;  
+            mult_res_tmp_3   = '0;  
+            mult_res_tmp_4   = '0;
+            feedback_operand = '0;
         end else begin
             for (int i = 0; i < FIR_DIFF_COEFF_NUM; i++) begin
                 if (i == 0) begin
@@ -151,20 +178,6 @@ module adaptive_filter
                 end else begin
                     diff_res[i] = $signed(s_tdata_d[i-1]) - $signed(s_tdata_d[FIR_DIFF_ORDER-i-1]);
                 end
-            end
-            
-            if (ctrl_reg) begin
-                mult_coeff_0 = {'0, fir_integr_coeff_a0};
-                mult_coeff_1 = {'0, fir_integr_coeff_a1, zeros_coeff_mult_1};
-                mult_coeff_2 = {'0, fir_integr_coeff_a0, zeros_coeff_mult_2};
-                mult_coeff_3 = '0;
-                mult_coeff_4 = '0;
-            end else begin
-                mult_coeff_0 = fir_diff_coeff_a0;
-                mult_coeff_1 = fir_diff_coeff_a1;
-                mult_coeff_2 = fir_diff_coeff_a2;
-                mult_coeff_3 = fir_diff_coeff_a3;
-                mult_coeff_4 = fir_diff_coeff_a4;    
             end
 
             mult_res_0     = $signed(mult_coeff_0) * $signed(diff_res[0]);
@@ -189,7 +202,9 @@ module adaptive_filter
             summ_res[1] = $signed(summ_res[0]) + $signed(mult_res_2);
             summ_res[2] = $signed(summ_res[1]) + $signed({mult_res_3, zeros_summ_res_2});
             summ_res[3] = $signed(summ_res[2]) + $signed({mult_res_4, zeros_summ_res_3});
-            summ_res[4] = $signed(summ_res[3]) + $signed(loop_tdata[DELAY_FEEDBACK_LOOP-1]);
+
+            feedback_operand = (ctrl_reg) ? loop_tdata[DELAY_FEEDBACK_LOOP-1] : '0;
+            summ_res[4]      = $signed(summ_res[3]) + $signed(feedback_operand);
         end
     end
 
@@ -197,7 +212,7 @@ module adaptive_filter
     (* synthesys_off *)
 
     localparam DATA_LENGTH = 128;
-    localparam DATA_DIR    = "C:\\MyFolder\\RemoteFolder\\projects\\adaptive_filter\\tbn\\data\\";
+    localparam DATA_DIR    = "C:\\MyFolder\\RemoteFolder\\projects\\adaptive_filter\\Source\\tbn\\data\\";
 
     logic [$clog2(DATA_LENGTH)-1:0] cnt_data;
     logic                           finish_data_transfer;

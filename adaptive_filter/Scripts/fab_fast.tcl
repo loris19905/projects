@@ -12,7 +12,7 @@
 set_attribute lib_search_path /Cadence/Libs/X_FAB/XKIT/xt018/diglibs/D_CELLS_HD/v4_0/liberty_LP5MOS/v4_0_0/PVT_1_80V_range
 
 # Setup PVT corner .lib file
-set_attribute library D_CELLS_HD_LP5MOS_fast_1_98V_175C.lib
+set_attribute library D_CELLS_HD_LP5MOS_fast_1_98V_m40C.lib
 
 # Setup LEF files
 set_attribute lef_library {/Cadence/Libs/X_FAB/XKIT/xt018/cadence/v7_0/techLEF/v7_0_1_1/xt018_xx43_MET4_METMID_METTHK.lef \ 
