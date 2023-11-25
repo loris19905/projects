@@ -9,6 +9,7 @@ module adaptive_filter_tb (
 
     localparam FILTER_MODE       = 0; // если 0 - дифференцирование, 1 - интегрирование
     localparam INCLUDE_SDF       = 0;
+    localparam SIM_EN            = 1;
 
     localparam WORDLEGTH         = 14;
     localparam FRACTIONAL_LENGTH = 6;
@@ -54,7 +55,9 @@ module adaptive_filter_tb (
 	    $readmemb({DATA_DIR, MODEL_FILE_NAME}, model_valid_tdata);
     end
 
-    adaptive_filter dut (
+    adaptive_filter #(
+        .SIM_EN   (SIM_EN     )
+        ) dut (
         .clk      (clk        ),
         .srst     (srst       ),
         .ctrl     (FILTER_MODE),

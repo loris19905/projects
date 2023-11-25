@@ -6,7 +6,8 @@
 
 module adaptive_filter 
     import adaptive_filter_pkg::*;
-(	
+    #(SIM_EN = 0
+    )(	
     input  logic        clk,
     input  logic        srst,
     input  logic        ctrl,
@@ -209,88 +210,91 @@ module adaptive_filter
     end
 
     //Debug
-    (* synthesys_off *)
+    generate
+        if (SIM_EN) begin
 
-    localparam DATA_LENGTH = 128;
-    localparam DATA_DIR    = "C:\\MyFolder\\RemoteFolder\\projects\\adaptive_filter\\Source\\tbn\\data\\";
+            localparam DATA_LENGTH = 128;
+            localparam DATA_DIR    = "C:\\MyFolder\\RemoteFolder\\projects\\adaptive_filter\\Source\\tbn\\data\\";
 
-    logic [$clog2(DATA_LENGTH)-1:0] cnt_data;
-    logic                           finish_data_transfer;
+            logic [$clog2(DATA_LENGTH)-1:0] cnt_data;
+            logic                           finish_data_transfer;
 
-    logic [MULTYPLYERS_WL[0]-1:0] mult_res_0_mem [DATA_LENGTH-1:0];
-    logic [MULTYPLYERS_WL[1]-1:0] mult_res_1_mem [DATA_LENGTH-1:0];
-    logic [MULTYPLYERS_WL[2]-1:0] mult_res_2_mem [DATA_LENGTH-1:0];
-    logic [MULTYPLYERS_WL[3]-1:0] mult_res_3_mem [DATA_LENGTH-1:0];
-    logic [MULTYPLYERS_WL[4]-1:0] mult_res_4_mem [DATA_LENGTH-1:0];
+            logic [MULTYPLYERS_WL[0]-1:0] mult_res_0_mem [DATA_LENGTH-1:0];
+            logic [MULTYPLYERS_WL[1]-1:0] mult_res_1_mem [DATA_LENGTH-1:0];
+            logic [MULTYPLYERS_WL[2]-1:0] mult_res_2_mem [DATA_LENGTH-1:0];
+            logic [MULTYPLYERS_WL[3]-1:0] mult_res_3_mem [DATA_LENGTH-1:0];
+            logic [MULTYPLYERS_WL[4]-1:0] mult_res_4_mem [DATA_LENGTH-1:0];
 
-    logic [OP_DIFF_WL-OP_DIFF_FL-1:-OP_DIFF_FL] diff_res_mem [DATA_LENGTH-1:0][FIR_DIFF_COEFF_NUM-1:0];
+            logic [OP_DIFF_WL-OP_DIFF_FL-1:-OP_DIFF_FL] diff_res_mem [DATA_LENGTH-1:0][FIR_DIFF_COEFF_NUM-1:0];
 
-    always_ff @(posedge clk) begin
-        if (srst) begin
-            cnt_data <= '0;
+            always_ff @(posedge clk) begin
+                if (srst) begin
+                    cnt_data <= '0;
 
-            foreach (mult_res_0_mem[element]) begin
-                mult_res_0_mem[element] <= '0;
-            end
+                    foreach (mult_res_0_mem[element]) begin
+                        mult_res_0_mem[element] <= '0;
+                    end
 
-            foreach (mult_res_1_mem[element]) begin
-                mult_res_1_mem[element] <= '0;
-            end
+                    foreach (mult_res_1_mem[element]) begin
+                        mult_res_1_mem[element] <= '0;
+                    end
 
-            foreach (mult_res_2_mem[element]) begin
-                mult_res_2_mem[element] <= '0;
-            end
+                    foreach (mult_res_2_mem[element]) begin
+                        mult_res_2_mem[element] <= '0;
+                    end
 
-            foreach (mult_res_3_mem[element]) begin
-                mult_res_3_mem[element] <= '0;
-            end
+                    foreach (mult_res_3_mem[element]) begin
+                        mult_res_3_mem[element] <= '0;
+                    end
 
-            foreach (mult_res_4_mem[element]) begin
-                mult_res_4_mem[element] <= '0;
-            end
+                    foreach (mult_res_4_mem[element]) begin
+                        mult_res_4_mem[element] <= '0;
+                    end
 
-            for (int i = 0; i < DATA_LENGTH; i++) begin
-                for (int j = 0; j < FIR_DIFF_COEFF_NUM; j++) begin
-                    diff_res_mem[i][j] <= '0;    
+                    for (int i = 0; i < DATA_LENGTH; i++) begin
+                        for (int j = 0; j < FIR_DIFF_COEFF_NUM; j++) begin
+                            diff_res_mem[i][j] <= '0;    
+                        end
+                    end
+
+                end else begin
+                    if (s_tvalid_reg) begin
+                        cnt_data                 <= cnt_data + 1;
+                        mult_res_0_mem[cnt_data] <= mult_res_0;
+                        mult_res_1_mem[cnt_data] <= mult_res_1;
+                        mult_res_2_mem[cnt_data] <= mult_res_2;
+                        mult_res_3_mem[cnt_data] <= mult_res_3;
+                        mult_res_4_mem[cnt_data] <= mult_res_4;
+
+                        for (int i = 0; i < FIR_DIFF_COEFF_NUM; i++) begin
+                            diff_res_mem[cnt_data][i] <= diff_res[i];
+                        end
+
+                        finish_data_transfer     <= (cnt_data == (DATA_LENGTH - 1)) ? 1'b1 : 1'b0;
+                    end else begin
+                        cnt_data             <= cnt_data;
+                        mult_res_0_mem       <= mult_res_0_mem;
+                        mult_res_1_mem       <= mult_res_1_mem;
+                        mult_res_2_mem       <= mult_res_2_mem;
+                        mult_res_3_mem       <= mult_res_3_mem;
+                        mult_res_4_mem       <= mult_res_4_mem;
+                        diff_res_mem         <= diff_res_mem;
+                        finish_data_transfer <= finish_data_transfer;
+                    end
                 end
             end
 
-        end else begin
-            if (s_tvalid_reg) begin
-                cnt_data                 <= cnt_data + 1;
-                mult_res_0_mem[cnt_data] <= mult_res_0;
-                mult_res_1_mem[cnt_data] <= mult_res_1;
-                mult_res_2_mem[cnt_data] <= mult_res_2;
-                mult_res_3_mem[cnt_data] <= mult_res_3;
-                mult_res_4_mem[cnt_data] <= mult_res_4;
-
-                for (int i = 0; i < FIR_DIFF_COEFF_NUM; i++) begin
-                    diff_res_mem[cnt_data][i] <= diff_res[i];
+            always @(*) begin
+                if (finish_data_transfer) begin
+                    $writememb({DATA_DIR, "mult_0.txt"}, mult_res_0_mem);
+                    $writememb({DATA_DIR, "mult_1.txt"}, mult_res_1_mem);
+                    $writememb({DATA_DIR, "mult_2.txt"}, mult_res_2_mem);
+                    $writememb({DATA_DIR, "mult_3.txt"}, mult_res_3_mem);
+                    $writememb({DATA_DIR, "mult_4.txt"}, mult_res_4_mem);
+                    $writememb({DATA_DIR, "diff.txt"  }, diff_res_mem  );
                 end
-
-                finish_data_transfer     <= (cnt_data == (DATA_LENGTH - 1)) ? 1'b1 : 1'b0;
-            end else begin
-                cnt_data             <= cnt_data;
-                mult_res_0_mem       <= mult_res_0_mem;
-                mult_res_1_mem       <= mult_res_1_mem;
-                mult_res_2_mem       <= mult_res_2_mem;
-                mult_res_3_mem       <= mult_res_3_mem;
-                mult_res_4_mem       <= mult_res_4_mem;
-                diff_res_mem         <= diff_res_mem;
-                finish_data_transfer <= finish_data_transfer;
             end
         end
-    end
-
-    always @(*) begin
-        if (finish_data_transfer) begin
-            $writememb({DATA_DIR, "mult_0.txt"}, mult_res_0_mem);
-            $writememb({DATA_DIR, "mult_1.txt"}, mult_res_1_mem);
-            $writememb({DATA_DIR, "mult_2.txt"}, mult_res_2_mem);
-            $writememb({DATA_DIR, "mult_3.txt"}, mult_res_3_mem);
-            $writememb({DATA_DIR, "mult_4.txt"}, mult_res_4_mem);
-            $writememb({DATA_DIR, "diff.txt"  }, diff_res_mem  );
-        end
-    end
+    endgenerate
 
 endmodule
