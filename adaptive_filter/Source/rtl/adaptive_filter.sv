@@ -42,7 +42,7 @@ module adaptive_filter
     assign fir_integr_coeff_a0 = 7'h17;
     assign fir_integr_coeff_a1 = 6'h29; 
 
-    //Сдвиговый регистр; защелкивание данных по входу и выходу
+    //Объявление регистровых переменных
     logic [FIR_DIFF_ORDER-1:0     ][WORDLENGTH-1:0] s_tdata_d;
     logic [DELAY_FEEDBACK_LOOP-1:0][OP_SUMM_WL-1:0] loop_tdata;
     logic                                           s_tvalid_d;
@@ -53,16 +53,23 @@ module adaptive_filter
 
     logic [FIR_DIFF_COEFF_NUM-1:0][OP_SUMM_WL-1:0]  summ_res;
 
+    //Защелкивание входных данных
     always_ff @(posedge clk) begin
         if (srst) begin
-            s_tdata_d    <= '0;
-            loop_tdata   <= '0;
-            m_tdata      <= '0;
-            s_tvalid_d   <= '0;
-            m_tvalid     <= '0;
             s_tdata_reg  <= '0;
             s_tvalid_reg <= '0;
             ctrl_reg     <= '0;  
+        end else begin
+            s_tdata_reg  <= s_tdata; 
+            s_tvalid_reg <= s_tvalid;
+            ctrl_reg     <= ctrl;
+        end
+    end
+
+    //Сдвиговый регистр. Начиная с регистра REG_ZERO_START_ADDR на вход подаются нули при работе в режиме интегратора
+    always_ff @(posedge clk) begin
+        if (srst) begin
+            s_tdata_d    <= '0;
         end else begin
             for (int i = 0; i < FIR_DIFF_ORDER; i++) begin
                 if (i == 0) begin
@@ -79,7 +86,18 @@ module adaptive_filter
                     end
                 end
             end
+        end
+    end
 
+    //Защелкивание выходного потока данных в регистры c одновременным приведением поступающих данных к ширине выходных данных + округление
+    //В этом же блоке осуществляется передача данных по петле обратной связи
+    always_ff @(posedge clk) begin
+        if (srst) begin
+            loop_tdata   <= '0;
+            m_tdata      <= '0;
+            s_tvalid_d   <= '0;
+            m_tvalid     <= '0;  
+        end else begin
             if (s_tvalid_reg) begin
                 loop_tdata[0] <= summ_res[FIR_DIFF_COEFF_NUM-1];
                 m_tdata       <= (summ_res[4][OP_SUMM_FL-FRACTIONAL_LENGTH-1]) ? summ_res[4][WORDLENGTH+OP_SUMM_FL-FRACTIONAL_LENGTH-1:OP_SUMM_FL-FRACTIONAL_LENGTH] + 1 : 
@@ -95,15 +113,20 @@ module adaptive_filter
                 loop_tdata[DELAY_FEEDBACK_LOOP-1] <= loop_tdata[DELAY_FEEDBACK_LOOP-1];
             end
 
-            s_tdata_reg  <= s_tdata; 
-            s_tvalid_reg <= s_tvalid;
             m_tvalid     <= s_tvalid_reg;
             s_tvalid_d   <= s_tvalid_reg;
-            ctrl_reg     <= ctrl;
         end  
     end
 
-    //Переключение импульсных характеристик
+    /*
+        По приходящему сигналу ctrl происходит переключение между коэффициентами интегратора и дифференциатора
+        Блок умножения имеет фиксированный размер для поступающих операндов, поэтому ширина mult_coeff_i определяется
+        наибольшей шириной двух коэффициентов, которые могут прийти на i-ый блок умножения
+        В данном случае ширина коэффициентов интегратора окалазь меньше, чем ширина коэффициентов дифференциатора.
+        Добавив справа "0", сами коэффициенты не поменяются, и при этом буддут удовлетворять заявленной ширине операнда умножителя.
+        Дополнительный "0" слева - знаковый бит
+    */
+
     logic [DIFF_COEFF_WL[0]-1:0]                    mult_coeff_0;
     logic [DIFF_COEFF_WL[1]-1:0]                    mult_coeff_1;
     logic [DIFF_COEFF_WL[2]-1:0]                    mult_coeff_2;
@@ -132,6 +155,7 @@ module adaptive_filter
         end
     end
 
+    //Вычисление результатов блоков вычитания, умножения и сложения
     logic [FIR_DIFF_COEFF_NUM-1:0][OP_DIFF_WL-OP_DIFF_FL-1:-OP_DIFF_FL] diff_res;
 
     logic [MULTYPLYERS_WL[0]-1:0]                                       mult_res_0;
@@ -153,12 +177,24 @@ module adaptive_filter
 
     logic [OP_SUMM_WL-1:0]                                              feedback_operand;
 
-    assign zeros_summ_res_0   = '0;
-    assign zeros_summ_res_2   = '0;
-    assign zeros_summ_res_3   = '0;
+    assign zeros_summ_res_0 = '0;
+    assign zeros_summ_res_2 = '0;
+    assign zeros_summ_res_3 = '0;
 
-    
-
+    /*
+        При описании блока использовались встроенные функции Verilog $signed(), который учитывает при вычислении смену знака.
+        При вычислении использовалось округление к ближайшему.
+        УМНОЖЕНИЕ:
+        Промежуточный результат рассчитывался с полной разрядностью (например, первый операнд имеет ширину W1, 
+        второй W2, тогда выходной результат - W1+W2). Конечный результат - результат округления промежуточного результата к заявленной ширине. Ход округления:
+        -- расчет в полной разрядности,
+        -- определяем диапазон бит, который необходимо взять из выходного результата, ориентируясь на то, что все-таки число дробное
+        -- определение величины бита (результата полной разрядности), который располагается относительно фиксированной точки в позиции (-FRACTIONAL_LENGT-1)
+        -- если бит = "1", прибавляем к усеченному результату "1", если нет - выходной результат вычислительного блока равен усеченному результату полной разрядности
+        СУММИРОВАНИЕ:
+        При суммировании также необходимо помнить, что первоначально числа дробные, т.е. целую часть необходимо складывать с целой, дробную - с дробной. Соответственно, 
+        если дробные части не сходятся, то операнд с наименьшей дробной частью необходимо справа дополнить нулями
+    */
     always_comb begin
         if (srst) begin
             mult_res_0       = '0;
@@ -209,7 +245,16 @@ module adaptive_filter
         end
     end
 
-    //Debug
+    /*
+        Секция предназначенная для проверки промежуточных результатов блоков умножения и вычитания.
+        В модуле объявляется память под каждый вычислительный блок. По окончании принятия данных происходит запись 
+        файл.
+
+        Данный блок относится к несинтезируемым структурам. При симуляции параметр SIM_EN можно положить равными 1, в
+        таком случае сгенерируется несинтезуемая часть.
+
+        По умолчанию SIM_EN = 0 => на этапе синтеза данная часть не будет сгенерирована.
+    */
     generate
         if (SIM_EN) begin
 
