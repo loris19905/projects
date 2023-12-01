@@ -3,20 +3,18 @@
 ###Technology:    X-FAB 180nm CMOS, XT018
 ###Library: 	 "D_CELLS_HD, 1.8V"
 ###Tools: 		 "Cadence Encounter 14.28"
-
 ###Stage: Place_and_Route
 ###FIle description: TCL script for Place and Route
 ###Work Directory: /adaptive_filter/Scripts/
-###Run command: Encounter ../Scripts/adaptive_filter_PaR.tcl 
+###Run command: Encounter ../Scripts/adaptive_filter_PaR.tcl
 
 
+#Import design
 set_global _enable_mmmc_by_default_flow      $CTE::mmmc_default
 suppressMessage ENCEXT-2799
 set_global _enable_mmmc_by_default_flow      $CTE::mmmc_default
 suppressMessage ENCEXT-2799
 win
-
-#Import design
 set ::TimeLib::tsgMarkCellLatchConstructFlag 1
 set defHierChar /
 set distributed_client_message_echo 1
@@ -42,7 +40,7 @@ init_design
 #Floorplanning: chip geometry
 getIoFlowFlag
 setIoFlowFlag 0
-floorPlan -fplanOrigin center -site core_hd -r 1 0.4 10 10 10 10
+floorPlan -fplanOrigin center -site core_hd -r 1 0.5 10 10 10 10
 uiSetTool select
 getIoFlowFlag
 fit
@@ -60,28 +58,14 @@ set sprCreateIeRingOffset 1.0
 set sprCreateIeRingThreshold 1.0
 set sprCreateIeRingJogDistance 1.0
 addRing -skip_via_on_wire_shape Noshape -skip_via_on_pin Standardcell -stacked_via_top_layer METTPL -type core_rings -jog_distance 3.15 -threshold 3.15 -nets {VSS VDD} -follow core -stacked_via_bottom_layer MET1 -layer {bottom MET1 top MET1 right MET2 left MET2} -width 3 -spacing 2.5 -offset 3.15
+addRing -skip_via_on_wire_shape Noshape -skip_via_on_pin Standardcell -stacked_via_top_layer METTPL -type core_rings -jog_distance 3.15 -threshold 3.15 -nets {VSS VDD} -follow core -stacked_via_bottom_layer MET1 -layer {bottom MET1 top MET1 right MET2 left MET2} -width 3 -spacing {bottom 0.23 top 0.23 right 0.28 left 0.28} -offset 3.15
 set sprCreateIeStripeNets {}
 set sprCreateIeStripeLayers {}
 set sprCreateIeStripeWidth 10.0
 set sprCreateIeStripeSpacing 2.0
 set sprCreateIeStripeThreshold 1.0
-addRing -skip_via_on_wire_shape Noshape -skip_via_on_pin Standardcell -stacked_via_top_layer METTPL -type core_rings -jog_distance 3.15 -threshold 3.15 -nets {VSS VDD} -follow core -stacked_via_bottom_layer MET1 -layer {bottom MET1 top MET1 right MET2 left MET2} -width 3 -spacing {bottom 0.23 top 0.23 right 0.28 left 0.28} -offset 3.15
 win
-set sprCreateIeRingNets {}
-set sprCreateIeRingLayers {}
-set sprCreateIeRingWidth 1.0
-set sprCreateIeRingSpacing 1.0
-set sprCreateIeRingOffset 1.0
-set sprCreateIeRingThreshold 1.0
-set sprCreateIeRingJogDistance 1.0
-addRing -skip_via_on_wire_shape Noshape -skip_via_on_pin Standardcell -stacked_via_top_layer METTPL -type core_rings -jog_distance 3.15 -threshold 3.15 -nets {VSS VDD} -follow core -stacked_via_bottom_layer MET1 -layer {bottom MET1 top MET1 right MET2 left MET2} -width 3 -spacing 2.5 -offset 3.15
-addRing -skip_via_on_wire_shape Noshape -skip_via_on_pin Standardcell -stacked_via_top_layer METTPL -type core_rings -jog_distance 3.15 -threshold 3.15 -nets {VSS VDD} -follow core -stacked_via_bottom_layer MET1 -layer {bottom MET1 top MET1 right MET2 left MET2} -width 3 -spacing {bottom 0.23 top 0.23 right 0.28 left 0.28} -offset 3.15
-set sprCreateIeStripeNets {}
-set sprCreateIeStripeLayers {}
-set sprCreateIeStripeWidth 10.0
-set sprCreateIeStripeSpacing 2.0
-set sprCreateIeStripeThreshold 1.0
-addStripe -skip_via_on_wire_shape Noshape -block_ring_top_layer_limit MET3 -max_same_layer_jog_length 6 -padcore_ring_bottom_layer_limit MET1 -set_to_set_distance 100 -skip_via_on_pin Standardcell -stacked_via_top_layer METTPL -padcore_ring_top_layer_limit MET3 -spacing 2.5 -merge_stripes_value 3.15 -layer MET2 -block_ring_bottom_layer_limit MET1 -width 3 -nets {VSS VDD} -stacked_via_bottom_layer MET1
+addStripe -skip_via_on_wire_shape Noshape -block_ring_top_layer_limit MET3 -max_same_layer_jog_length 6 -padcore_ring_bottom_layer_limit MET1 -set_to_set_distance 25 -skip_via_on_pin Standardcell -stacked_via_top_layer METTPL -padcore_ring_top_layer_limit MET3 -spacing 2.5 -xleft_offset 30 -xright_offset 30 -merge_stripes_value 3.15 -layer MET2 -block_ring_bottom_layer_limit MET1 -width 3 -nets {VDD VSS} -stacked_via_bottom_layer MET1
 sroute -connect { blockPin padPin padRing corePin floatingStripe } -layerChangeRange { MET1 METTPL } -blockPinTarget { nearestTarget } -padPinPortConnect { allPort oneGeom } -padPinTarget { nearestTarget } -corePinTarget { firstAfterRowEnd } -floatingStripeTarget { blockring padring ring stripe ringpin blockpin followpin } -allowJogging 1 -crossoverViaLayerRange { MET1 METTPL } -nets { VSS VDD } -allowLayerChange 1 -blockPin useLef -targetViaLayerRange { MET1 METTPL }
 editPowerVia -skip_via_on_pin Standardcell -bottom_layer MET1 -add_vias 1 -top_layer METTPL
 set sprEpvLayers {}
@@ -152,7 +136,7 @@ all_setup_analysis_views
 #SDF, DEF, logic and physical netlist
 write_sdf -view MAXview ../Outputs/adaptive_filter.sdf
 saveNetlist ../Outputs/adaptive_filter_logic
-saveNetlist ../Outputs/asic_filter.v -includePhysicalCell {FEED7HD FEED5HD FEED3HD FEED2HD FEED25HD FEED1HD FEED15HD FEED10HD}
+saveNetlist ../Outputs/asic_filter.v
 global dbgLefDefOutVersion
 set dbgLefDefOutVersion 5.8
 defOut -floorplan -netlist -routing ../Outputs/adaptive_filter.def
