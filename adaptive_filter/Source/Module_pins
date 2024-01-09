@@ -1,0 +1,44 @@
+Offset: 50
+Pin: clk W MET4
+
+Spacing: 5
+Pin: s_tdata[0] W MET4
+Pin: s_tdata[1] W MET4
+Pin: s_tdata[2] W MET4
+Pin: s_tdata[3] W MET4
+Pin: s_tdata[4] W MET4
+Pin: s_tdata[5] W MET4
+Pin: s_tdata[6] W MET4
+Pin: s_tdata[7] W MET4
+Pin: s_tdata[8] W MET4
+Pin: s_tdata[9] W MET4
+Pin: s_tdata[10] W MET4
+Pin: s_tdata[11] W MET4
+Pin: s_tdata[12] W MET4
+Pin: s_tdata[13] W MET4
+Pin: s_tvalid    W MET4
+
+Offset: 50
+Pin: srst N MET4
+
+Spacing: 40
+Pin: ctrl N MET4
+
+Offset: 50
+Pin: m_tdata[0] E MET4
+
+Spacing: 5
+Pin: m_tdata[1] E MET4
+Pin: m_tdata[2] E MET4
+Pin: m_tdata[3] E MET4
+Pin: m_tdata[4] E MET4
+Pin: m_tdata[5] E MET4
+Pin: m_tdata[6] E MET4
+Pin: m_tdata[7] E MET4
+Pin: m_tdata[8] E MET4
+Pin: m_tdata[9] E MET4
+Pin: m_tdata[10] E MET4
+Pin: m_tdata[11] E MET4
+Pin: m_tdata[12] E MET4
+Pin: m_tdata[13] E MET4
+Pin: m_tvalid    E MET4
