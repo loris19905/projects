@@ -8,32 +8,39 @@ module adaptive_filter_tb (
 );
 
     localparam FILTER_MODE       = 0; // если 0 - дифференцирование, 1 - интегрирование
-    localparam INCLUDE_SDF       = 0;
-    localparam SIM_EN            = 1;
+    localparam INCLUDE_SDF       = 0; // включение .sdf  
+    localparam SIM_EN            = 1; // включает несинтезируемую часть в RTL для тестирования
 
+    //Параметры ширины входных/выходных данных
     localparam WORDLEGTH         = 14;
     localparam FRACTIONAL_LENGTH = 6;
 
+    //Параметры чтения данных модели
     localparam DATA_NUM         = 128;
     localparam DATA_DIR         = "C:\\MyFolder\\RemoteFolder\\projects\\adaptive_filter\\Source\\tbn\\data\\";
 
+    //Чтение/запись входного/выходного воздействия
     localparam INPUT_FILE_NAME  = "data_in.txt";
     localparam OUTPUT_FILE_NAME = "data_out.txt";
     localparam MODEL_FILE_NAME  = "model_data_differentiator.txt";
 
+
     logic clk;
     logic srst;
 
+    //Входные сигналы
     logic [WORDLEGTH-1:0] s_tdata;
     logic                 s_tvalid;
     logic [WORDLEGTH-1:0] s_tdata_mem [DATA_NUM-1:0];
 
+    //Выходные сигналы
     logic [WORDLEGTH-1:0] m_tdata;
     logic [WORDLEGTH-1:0] m_tdata_mem [DATA_NUM-1:0];
     logic                 m_tvalid;
     
     logic [WORDLEGTH-1:0] model_valid_tdata [DATA_NUM-1:0];
 
+    //Вспомогательные сигналы для проверки выходныз данных
     logic                 start_display;
     logic                 output_is_valid_to_model; 
     logic                 finish_data_transfer;
@@ -47,14 +54,18 @@ module adaptive_filter_tb (
             $sdf_annotate("../Outputs/Place_and_route/adaptive_filter.sdf", dut);    
         end
 
+        //Инициализация модуля
         clk  = 1;
         srst = 1;
         #10;
         srst = 0;
+
+        //Чтение файлов модели и входного воздействия
         $readmemb({DATA_DIR, INPUT_FILE_NAME}, s_tdata_mem);
 	    $readmemb({DATA_DIR, MODEL_FILE_NAME}, model_valid_tdata);
     end
 
+    //Объявление модуля
     adaptive_filter #(
         .SIM_EN   (SIM_EN     )
         ) dut (
@@ -69,9 +80,11 @@ module adaptive_filter_tb (
         .m_tvalid (m_tvalid   )
     );
 
+    //Счечики контроля входного потока данных и выходных данных фильтра
     logic [$clog2(DATA_NUM)-1:0] cnt_output_data;
     logic [$clog2(DATA_NUM)-1:0] cnt_input_data;
 
+    //Защелкивание данных входного воздействия + управление счетчиками контроля симуляции
     always_ff @(posedge clk) begin
         if (srst) begin
             foreach (m_tdata_mem[element]) begin
@@ -93,6 +106,7 @@ module adaptive_filter_tb (
         end
     end
 
+    //Вывод в консоль результата проверки и остановка симуляции
     assign output_is_valid_to_model = model_valid_tdata[cnt_output_data] == m_tdata;
     assign start_display            = m_tvalid;
     always_ff @(posedge clk) begin

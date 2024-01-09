@@ -6,7 +6,7 @@
 
 ###Stage: Synthesis
 ###FIle description: SDC-file for Synthesis
-###Work Directory: /adaptive_filter/Source/rtl/ 
+###Work Directory: /adaptive_filter/Scripts/ 
 
 ### Задание единиц измерения
 set_units -time ns -capacitance pF

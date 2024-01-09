@@ -10,7 +10,7 @@
 ###Run command: RTL_Compiler ../Scripts/synth.tcl
 
 ## Setup technology files
-include ../Scripts/fab_slow.tcl
+include ../Scripts/adaptive_filter_fab_slow.tcl
 
 ## Read in Verilog HDL files
 read_hdl -sv ../Source/rtl/adaptive_filter_pkg.sv
@@ -20,7 +20,7 @@ read_hdl -sv ../Source/rtl/adaptive_filter.sv
 elaborate
 
 ## Setup design constraints
-read_sdc ../Source/rtl/adaptive_filter_constr.sdc
+read_sdc ../Scripts/adaptive_filter_constr.sdc
 
 ## Synthesize our schematic (create a technology-dependent schematic)
 synthesize -to_mapped
@@ -30,7 +30,7 @@ report timing > ../Reports/Synthesis/timing_report
 report area > ../Reports/Synthesis/area_report
 
 ## Write out synthesized Verilog netlist
-write_hdl -mapped > ../Outputs/Synthesis/synth_hdl.v
+write_hdl -mapped > ../Outputs/Synthesis/adaptive_filter_synth_hdl.v
 
 ## Write out the SDC file we will take into the place n route tool
 write_sdc > ../Source/rtl/Top_syn_out.sdc
