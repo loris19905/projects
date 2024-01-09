@@ -22,13 +22,13 @@ set gpsPrivate::dpgNewAddBufsDBUpdate 1
 set gpsPrivate::lsgEnableNewDbApiInRestruct 1
 set init_design_settop 0
 set init_gnd_net VSS
-set init_io_file ../Source/Module_pins
+set init_io_file ../Scripts/adaptive_filter_module_pins
 set init_lef_file {/Cadence/Libs/X_FAB/XKIT/xt018/cadence/v7_0/techLEF/v7_0_1_1/xt018_xx43_MET4_METMID_METTHK.lef 
 /Cadence/Libs/X_FAB/XKIT/xt018/diglibs/D_CELLS_HD/v4_0/LEF/v4_0_0/xt018_D_CELLS_HD.lef}
-set init_mmmc_file ../Scripts/MMMC.tcl
+set init_mmmc_file ../Scripts/adaptive_filter_MMMC.tcl
 set init_oa_search_lib {}
 set init_pwr_net VDD
-set init_verilog ../Outputs/Synthesis/synth_hdl.v
+set init_verilog ../Outputs/Synthesis/adaptive_filter_synth_hdl.v
 set lsgOCPGainMult 1.000000
 set pegDefaultResScaleFactor 1.000000
 set pegDetailResScaleFactor 1.000000
@@ -135,12 +135,13 @@ verify_drc -report adaptive_filter.drc.rpt -limit 1000
 verifyConnectivity -type all -error 1000 -warning 50
 setExtractRCMode -engine postRoute -effortLevel signoff
 extractRC
+verifyProcessAntenna -reportfile adaptive_filter.antenna.rpt -detailed -error 1000 -outDir ../Reports/Place_and_Route
 redirect -quiet {set honorDomain [getAnalysisMode -honorClockDomains]} > /dev/null
 timeDesign -signoff -pathReports -drvReports -slackReports -numPaths 50 -prefix adaptive_filter_signOff -outDir ../Reports/Place_and_Route
 redirect -quiet {set honorDomain [getAnalysisMode -honorClockDomains]} > /dev/null
 timeDesign -signoff -hold -pathReports -slackReports -numPaths 50 -prefix adaptive_filter_signOff -outDir ../Reports/Place_and_Route
 all_hold_analysis_views 
-all_setup_analysis_views 
+all_setup_analysis_views
 
 #SDF, DEF, logic and physical netlist
 write_sdf -view MAXview ../Outputs/adaptive_filter.sdf
