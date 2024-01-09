@@ -22,7 +22,7 @@ set gpsPrivate::dpgNewAddBufsDBUpdate 1
 set gpsPrivate::lsgEnableNewDbApiInRestruct 1
 set init_design_settop 0
 set init_gnd_net VSS
-set init_io_file ../Outputs/Place_and_Route/Module_pins
+set init_io_file ../Source/Module_pins
 set init_lef_file {/Cadence/Libs/X_FAB/XKIT/xt018/cadence/v7_0/techLEF/v7_0_1_1/xt018_xx43_MET4_METMID_METTHK.lef 
 /Cadence/Libs/X_FAB/XKIT/xt018/diglibs/D_CELLS_HD/v4_0/LEF/v4_0_0/xt018_D_CELLS_HD.lef}
 set init_mmmc_file ../Scripts/MMMC.tcl
@@ -38,12 +38,7 @@ set tso_post_client_restore_command {update_timing ; write_eco_opt_db ;}
 init_design
 
 #Floorplanning: chip geometry
-getIoFlowFlag
-setIoFlowFlag 0
 floorPlan -fplanOrigin center -site core_hd -r 1 0.5 10 10 10 10
-uiSetTool select
-getIoFlowFlag
-fit
 globalNetConnect VDD -type pgpin -pin vdd -inst *
 globalNetConnect VSS -type pgpin -pin gnd -inst *
 globalNetConnect VDD -type tiehi -inst * -module {}
@@ -65,7 +60,6 @@ set sprCreateIeStripeWidth 10.0
 set sprCreateIeStripeSpacing 2.0
 set sprCreateIeStripeThreshold 1.0
 addRing -skip_via_on_wire_shape Noshape -skip_via_on_pin Standardcell -stacked_via_top_layer METTPL -type core_rings -jog_distance 3.15 -threshold 3.15 -nets {VSS VDD} -follow core -stacked_via_bottom_layer MET1 -layer {bottom MET1 top MET1 right MET2 left MET2} -width 3 -spacing {bottom 0.23 top 0.23 right 0.28 left 0.28} -offset 3.15
-win
 set sprCreateIeRingNets {}
 set sprCreateIeRingLayers {}
 set sprCreateIeRingWidth 1.0
@@ -150,7 +144,7 @@ all_setup_analysis_views
 
 #SDF, DEF, logic and physical netlist
 write_sdf -view MAXview ../Outputs/adaptive_filter.sdf
-saveNetlist ../Outputs/adaptive_filter_logic
+saveNetlist ../Outputs/adaptive_filter_logic.v
 saveNetlist ../Outputs/asic_filter.v
 global dbgLefDefOutVersion
 set dbgLefDefOutVersion 5.8
